@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCDS Enterprise | Security Operations</title>
+    
+    <!-- External Libs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-cyber-900 text-cyber-text font-sans h-screen overflow-hidden flex flex-col cyber-grid">
+
+    <div id="toast-container" class="space-y-4"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container" class="flex h-full w-full">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-cyber-800 border-r border-cyber-700 flex flex-col z-20 shadow-xl hidden md:flex">
+            <div class="p-6 flex items-center gap-3 border-b border-cyber-700">
+                <div class="w-10 h-10 rounded bg-gradient-to-br from-cyber-neon to-blue-600 flex items-center justify-center text-black font-bold text-xl shadow-neon-blue"><i class="fa-solid fa-shield-halved"></i></div>
+                <div><h1 class="font-bold tracking-wider text-white">PCDS</h1><p class="text-xs text-cyber-neon font-mono">ENT-v1.0</p></div>
+            </div>
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <button class="nav-item active w-full flex items-center gap-3 px-4 py-3 text-cyber-dim hover:bg-cyber-700/30 hover:text-white rounded transition-all border-l-4 border-cyber-neon"><i class="fa-solid fa-chart-line w-5 text-center"></i><span class="text-sm font-medium">Dashboard</span></button>
+                <button class="nav-item w-full flex items-center gap-3 px-4 py-3 text-cyber-dim hover:bg-cyber-700/30 hover:text-white rounded transition-all border-l-4 border-transparent"><i class="fa-solid fa-network-wired w-5 text-center"></i><span class="text-sm font-medium">Network Map</span></button>
+            </nav>
+            <!-- Status Footer -->
+            <div class="p-4 border-t border-cyber-700">
+                <div class="glass-panel p-3 rounded flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-cyber-success animate-pulse"></div><div><p class="text-xs text-cyber-dim uppercase font-bold">System Status</p><p class="text-sm font-mono text-cyber-success">ARMED</p></div></div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
+            <header class="h-16 border-b border-cyber-700 bg-cyber-800/80 backdrop-blur flex items-center justify-between px-6">
+                <div class="flex items-center gap-2 text-sm text-cyber-dim"><span class="font-bold text-white uppercase tracking-wider">Live Monitor</span><i class="fa-solid fa-chevron-right text-xs"></i><span class="text-cyber-neon">Active Defense</span></div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded border border-cyber-700"><i class="fa-solid fa-clock text-cyber-neon text-xs"></i><span id="clock" class="font-mono text-sm text-cyber-neon">00:00:00</span></div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-lg border-l-4 border-cyber-danger relative overflow-hidden">
+                        <h3 class="text-cyber-dim text-xs font-bold uppercase tracking-wider">Threat Level</h3>
+                        <div class="mt-2 flex items-baseline gap-2"><span class="text-3xl font-mono font-bold text-white">ACTIVE</span></div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-lg border-l-4 border-cyber-neon relative overflow-hidden">
+                         <h3 class="text-cyber-dim text-xs font-bold uppercase tracking-wider">Packets Analyzed</h3>
+                        <div class="mt-2 flex items-baseline gap-2"><span id="packetCount" class="text-3xl font-mono font-bold text-white">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Visualization Area -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+                    <div class="glass-panel rounded-lg p-5 lg:col-span-2 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-white font-semibold flex items-center gap-2"><i class="fa-solid fa-wave-square text-cyber-neon"></i> Real-Time Traffic Analysis</h2>
+                            <button onclick="downloadReport()" class="text-xs bg-cyber-700 border border-cyber-dim hover:bg-cyber-neon hover:text-black hover:border-cyber-neon transition-all px-3 py-1 rounded text-white font-medium flex items-center gap-2"><i class="fa-solid fa-download"></i> PDF Report</button>
+                        </div>
+                        <div class="flex-1 w-full h-full relative"><canvas id="trafficChart"></canvas></div>
+                    </div>
+                    <div class="glass-panel rounded-lg p-0 flex flex-col overflow-hidden border border-cyber-700">
+                        <div class="bg-black/40 px-4 py-3 border-b border-cyber-700"><h2 class="text-xs font-bold text-cyber-dim uppercase tracking-widest"><i class="fa-solid fa-terminal mr-2"></i>Live Logs</h2></div>
+                        <div class="flex-1 bg-black/80 p-4 font-mono text-xs overflow-y-auto font-light space-y-2" id="logTerminal"></div>
+                    </div>
+                </div>
+
+                <!-- Threat Table -->
+                <div class="glass-panel rounded-lg overflow-hidden">
+                    <div class="p-5 border-b border-cyber-700"><h2 class="text-lg font-semibold text-white">Threat History (DB)</h2></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-cyber-dim">
+                            <thead class="bg-cyber-700/30 uppercase text-xs font-bold text-white">
+                                <tr><th class="px-6 py-4">Time</th><th class="px-6 py-4">Threat</th><th class="px-6 py-4">IP Address</th><th class="px-6 py-4">Confidence</th><th class="px-6 py-4">Action</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-cyber-700/50" id="alertsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Logic -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

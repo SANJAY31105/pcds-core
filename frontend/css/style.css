@@ -1,0 +1,25 @@
+/* Tailwind Configuration Injection */
+/* Note: In a real production build, you would use a tailwind.config.js file */
+/* This works because the Tailwind CDN in HTML reads this script block */
+@layer utilities {
+    .glass-panel { 
+        background: rgba(19, 19, 31, 0.95); 
+        backdrop-filter: blur(10px); 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+    }
+    .cyber-grid { 
+        background-image: linear-gradient(rgba(28, 28, 46, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(28, 28, 46, 0.3) 1px, transparent 1px); 
+        background-size: 30px 30px; 
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #1c1c2e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+
+/* Toast Animations */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 100; }
+.toast { transform: translateX(100%); transition: transform 0.3s ease-out; }
+.toast.show { transform: translateX(0); }
