@@ -1,0 +1,38 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+    const token = request.cookies.get('access_token')?.value ||
+        request.headers.get('authorization')?.replace('Bearer ', '');
+
+    // Public routes that don't require authentication
+    const publicPaths = ['/login', '/api/auth'];
+    const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
+
+    // If trying to access protected route without token, redirect to login
+    if (!isPublicPath && !token) {
+        // Check localStorage via client-side redirect
+        if (typeof window !== 'undefined') {
+            const clientToken = localStorage.getItem('access_token');
+            if (!clientToken) {
+                return NextResponse.redirect(new URL('/login', request.url));
+            }
+        } else {
+            // Server-side check
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+    }
+
+    // If logged in and trying to access login page, redirect to dashboard
+    if (request.nextUrl.pathname === '/login' && token) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    return NextResponse.next();
+}
+
+export const config = {
+    matcher: [
+        '/((?!_next/static|_next/image|favicon.ico).*)',
+    ],
+};

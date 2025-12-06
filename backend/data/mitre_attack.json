@@ -1,0 +1,498 @@
+{
+    "tactics": [
+        {
+            "id": "TA0001",
+            "name": "Initial Access",
+            "description": "The adversary is trying to get into your network.",
+            "techniques": [
+                "T1078",
+                "T1190",
+                "T1133",
+                "T1566",
+                "T1195"
+            ]
+        },
+        {
+            "id": "TA0002",
+            "name": "Execution",
+            "description": "The adversary is trying to run malicious code.",
+            "techniques": [
+                "T1059",
+                "T1203",
+                "T1204",
+                "T1047",
+                "T1106"
+            ]
+        },
+        {
+            "id": "TA0003",
+            "name": "Persistence",
+            "description": "The adversary is trying to maintain their foothold.",
+            "techniques": [
+                "T1053",
+                "T1136",
+                "T1098",
+                "T1547",
+                "T1543"
+            ]
+        },
+        {
+            "id": "TA0004",
+            "name": "Privilege Escalation",
+            "description": "The adversary is trying to gain higher-level permissions.",
+            "techniques": [
+                "T1068",
+                "T1134",
+                "T1548",
+                "T1078",
+                "T1055"
+            ]
+        },
+        {
+            "id": "TA0005",
+            "name": "Defense Evasion",
+            "description": "The adversary is trying to avoid being detected.",
+            "techniques": [
+                "T1562",
+                "T1070",
+                "T1027",
+                "T1055",
+                "T1218"
+            ]
+        },
+        {
+            "id": "TA0006",
+            "name": "Credential Access",
+            "description": "The adversary is trying to steal account names and passwords.",
+            "techniques": [
+                "T1110",
+                "T1003",
+                "T1056",
+                "T1555",
+                "T1558"
+            ]
+        },
+        {
+            "id": "TA0007",
+            "name": "Discovery",
+            "description": "The adversary is trying to figure out your environment.",
+            "techniques": [
+                "T1087",
+                "T1018",
+                "T1083",
+                "T1046",
+                "T1057"
+            ]
+        },
+        {
+            "id": "TA0008",
+            "name": "Lateral Movement",
+            "description": "The adversary is trying to move through your environment.",
+            "techniques": [
+                "T1021",
+                "T1091",
+                "T1080",
+                "T1550",
+                "T1570"
+            ]
+        },
+        {
+            "id": "TA0009",
+            "name": "Collection",
+            "description": "The adversary is trying to gather data of interest.",
+            "techniques": [
+                "T1005",
+                "T1039",
+                "T1074",
+                "T1114",
+                "T1560"
+            ]
+        },
+        {
+            "id": "TA0010",
+            "name": "Command and Control",
+            "description": "The adversary is trying to communicate with compromised systems.",
+            "techniques": [
+                "T1071",
+                "T1090",
+                "T1095",
+                "T1102",
+                "T1132"
+            ]
+        },
+        {
+            "id": "TA0011",
+            "name": "Exfiltration",
+            "description": "The adversary is trying to steal data.",
+            "techniques": [
+                "T1020",
+                "T1030",
+                "T1048",
+                "T1041",
+                "T1567"
+            ]
+        },
+        {
+            "id": "TA0040",
+            "name": "Impact",
+            "description": "The adversary is trying to manipulate, interrupt, or destroy systems and data.",
+            "techniques": [
+                "T1485",
+                "T1486",
+                "T1490",
+                "T1498",
+                "T1499"
+            ]
+        }
+    ],
+    "techniques": {
+        "T1078": {
+            "name": "Valid Accounts",
+            "tactic": "TA0001",
+            "severity": "high",
+            "description": "Adversaries may obtain and abuse credentials of existing accounts"
+        },
+        "T1190": {
+            "name": "Exploit Public-Facing Application",
+            "tactic": "TA0001",
+            "severity": "critical",
+            "description": "Exploitation of web services or applications"
+        },
+        "T1133": {
+            "name": "External Remote Services",
+            "tactic": "TA0001",
+            "severity": "high",
+            "description": "Remote services such as VPNs, Citrix"
+        },
+        "T1566": {
+            "name": "Phishing",
+            "tactic": "TA0001",
+            "severity": "high",
+            "description": "Sending phishing messages to gain access"
+        },
+        "T1195": {
+            "name": "Supply Chain Compromise",
+            "tactic": "TA0001",
+            "severity": "critical",
+            "description": "Manipulation of products or delivery mechanisms"
+        },
+        "T1059": {
+            "name": "Command and Scripting Interpreter",
+            "tactic": "TA0002",
+            "severity": "high",
+            "description": "PowerShell, CMD, Bash execution"
+        },
+        "T1203": {
+            "name": "Exploitation for Client Execution",
+            "tactic": "TA0002",
+            "severity": "high",
+            "description": "Browser or application vulnerabilities"
+        },
+        "T1204": {
+            "name": "User Execution",
+            "tactic": "TA0002",
+            "severity": "medium",
+            "description": "User opens malicious file"
+        },
+        "T1047": {
+            "name": "Windows Management Instrumentation",
+            "tactic": "TA0002",
+            "severity": "high",
+            "description": "WMI for lateral movement and execution"
+        },
+        "T1106": {
+            "name": "Native API",
+            "tactic": "TA0002",
+            "severity": "medium",
+            "description": "Direct Windows API calls"
+        },
+        "T1053": {
+            "name": "Scheduled Task/Job",
+            "tactic": "TA0003",
+            "severity": "high",
+            "description": "Task scheduling for persistence"
+        },
+        "T1136": {
+            "name": "Create Account",
+            "tactic": "TA0003",
+            "severity": "high",
+            "description": "Create local or domain accounts"
+        },
+        "T1098": {
+            "name": "Account Manipulation",
+            "tactic": "TA0003",
+            "severity": "high",
+            "description": "Modify account permissions"
+        },
+        "T1547": {
+            "name": "Boot or Logon Autostart Execution",
+            "tactic": "TA0003",
+            "severity": "high",
+            "description": "Registry run keys, startup folder"
+        },
+        "T1543": {
+            "name": "Create or Modify System Process",
+            "tactic": "TA0003",
+            "severity": "critical",
+            "description": "Windows services, daemons"
+        },
+        "T1068": {
+            "name": "Exploitation for Privilege Escalation",
+            "tactic": "TA0004",
+            "severity": "critical",
+            "description": "Exploit vulnerabilities to elevate privileges"
+        },
+        "T1134": {
+            "name": "Access Token Manipulation",
+            "tactic": "TA0004",
+            "severity": "high",
+            "description": "Manipulate access tokens"
+        },
+        "T1548": {
+            "name": "Abuse Elevation Control Mechanism",
+            "tactic": "TA0004",
+            "severity": "high",
+            "description": "Bypass UAC, sudo"
+        },
+        "T1055": {
+            "name": "Process Injection",
+            "tactic": "TA0004",
+            "severity": "high",
+            "description": "DLL injection, process hollowing"
+        },
+        "T1562": {
+            "name": "Impair Defenses",
+            "tactic": "TA0005",
+            "severity": "critical",
+            "description": "Disable security tools"
+        },
+        "T1070": {
+            "name": "Indicator Removal",
+            "tactic": "TA0005",
+            "severity": "high",
+            "description": "Clear logs, delete files"
+        },
+        "T1027": {
+            "name": "Obfuscated Files or Information",
+            "tactic": "TA0005",
+            "severity": "medium",
+            "description": "Encryption, encoding"
+        },
+        "T1218": {
+            "name": "System Binary Proxy Execution",
+            "tactic": "TA0005",
+            "severity": "high",
+            "description": "Rundll32, regsvr32"
+        },
+        "T1110": {
+            "name": "Brute Force",
+            "tactic": "TA0006",
+            "severity": "high",
+            "description": "Password guessing, spraying"
+        },
+        "T1003": {
+            "name": "OS Credential Dumping",
+            "tactic": "TA0006",
+            "severity": "critical",
+            "description": "Mimikatz, SAM database dumping"
+        },
+        "T1056": {
+            "name": "Input Capture",
+            "tactic": "TA0006",
+            "severity": "high",
+            "description": "Keylogging"
+        },
+        "T1555": {
+            "name": "Credentials from Password Stores",
+            "tactic": "TA0006",
+            "severity": "high",
+            "description": "Browser passwords, credential managers"
+        },
+        "T1558": {
+            "name": "Steal or Forge Kerberos Tickets",
+            "tactic": "TA0006",
+            "severity": "critical",
+            "description": "Kerberoasting, Golden Ticket"
+        },
+        "T1087": {
+            "name": "Account Discovery",
+            "tactic": "TA0007",
+            "severity": "low",
+            "description": "Enumerate users and groups"
+        },
+        "T1018": {
+            "name": "Remote System Discovery",
+            "tactic": "TA0007",
+            "severity": "low",
+            "description": "Network enumeration"
+        },
+        "T1083": {
+            "name": "File and Directory Discovery",
+            "tactic": "TA0007",
+            "severity": "low",
+            "description": "File system exploration"
+        },
+        "T1046": {
+            "name": "Network Service Discovery",
+            "tactic": "TA0007",
+            "severity": "medium",
+            "description": "Port scanning"
+        },
+        "T1057": {
+            "name": "Process Discovery",
+            "tactic": "TA0007",
+            "severity": "low",
+            "description": "List running processes"
+        },
+        "T1021": {
+            "name": "Remote Services",
+            "tactic": "TA0008",
+            "severity": "high",
+            "description": "RDP, SSH, SMB/Windows Admin Shares"
+        },
+        "T1091": {
+            "name": "Replication Through Removable Media",
+            "tactic": "TA0008",
+            "severity": "medium",
+            "description": "USB drives, external media"
+        },
+        "T1080": {
+            "name": "Taint Shared Content",
+            "tactic": "TA0008",
+            "severity": "medium",
+            "description": "Modify shared resources"
+        },
+        "T1550": {
+            "name": "Use Alternate Authentication Material",
+            "tactic": "TA0008",
+            "severity": "high",
+            "description": "Pass-the-hash, Pass-the-ticket"
+        },
+        "T1570": {
+            "name": "Lateral Tool Transfer",
+            "tactic": "TA0008",
+            "severity": "medium",
+            "description": "Copy tools between systems"
+        },
+        "T1005": {
+            "name": "Data from Local System",
+            "tactic": "TA0009",
+            "severity": "medium",
+            "description": "Collect local files"
+        },
+        "T1039": {
+            "name": "Data from Network Shared Drive",
+            "tactic": "TA0009",
+            "severity": "medium",
+            "description": "Access network shares"
+        },
+        "T1074": {
+            "name": "Data Staged",
+            "tactic": "TA0009",
+            "severity": "medium",
+            "description": "Stage data before exfiltration"
+        },
+        "T1114": {
+            "name": "Email Collection",
+            "tactic": "TA0009",
+            "severity": "high",
+            "description": "Access email"
+        },
+        "T1560": {
+            "name": "Archive Collected Data",
+            "tactic": "TA0009",
+            "severity": "medium",
+            "description": "Compress and archive"
+        },
+        "T1071": {
+            "name": "Application Layer Protocol",
+            "tactic": "TA0010",
+            "severity": "high",
+            "description": "HTTP, DNS, FTP for C2"
+        },
+        "T1090": {
+            "name": "Proxy",
+            "tactic": "TA0010",
+            "severity": "high",
+            "description": "Multi-hop proxy"
+        },
+        "T1095": {
+            "name": "Non-Application Layer Protocol",
+            "tactic": "TA0010",
+            "severity": "high",
+            "description": "Raw sockets"
+        },
+        "T1102": {
+            "name": "Web Service",
+            "tactic": "TA0010",
+            "severity": "medium",
+            "description": "Cloud services for C2"
+        },
+        "T1132": {
+            "name": "Data Encoding",
+            "tactic": "TA0010",
+            "severity": "medium",
+            "description": "Encode C2 traffic"
+        },
+        "T1020": {
+            "name": "Automated Exfiltration",
+            "tactic": "TA0011",
+            "severity": "high",
+            "description": "Scheduled data theft"
+        },
+        "T1030": {
+            "name": "Data Transfer Size Limits",
+            "tactic": "TA0011",
+            "severity": "medium",
+            "description": "Split into smaller chunks"
+        },
+        "T1048": {
+            "name": "Exfiltration Over Alternative Protocol",
+            "tactic": "TA0011",
+            "severity": "high",
+            "description": "DNS, FTP exfiltration"
+        },
+        "T1041": {
+            "name": "Exfiltration Over C2 Channel",
+            "tactic": "TA0011",
+            "severity": "high",
+            "description": "Use existing C2"
+        },
+        "T1567": {
+            "name": "Exfiltration Over Web Service",
+            "tactic": "TA0011",
+            "severity": "medium",
+            "description": "Cloud storage upload"
+        },
+        "T1485": {
+            "name": "Data Destruction",
+            "tactic": "TA0040",
+            "severity": "critical",
+            "description": "Delete or corrupt data"
+        },
+        "T1486": {
+            "name": "Data Encrypted for Impact",
+            "tactic": "TA0040",
+            "severity": "critical",
+            "description": "Ransomware"
+        },
+        "T1490": {
+            "name": "Inhibit System Recovery",
+            "tactic": "TA0040",
+            "severity": "critical",
+            "description": "Delete backups, shadow copies"
+        },
+        "T1498": {
+            "name": "Network Denial of Service",
+            "tactic": "TA0040",
+            "severity": "critical",
+            "description": "DDoS attacks"
+        },
+        "T1499": {
+            "name": "Endpoint Denial of Service",
+            "tactic": "TA0040",
+            "severity": "critical",
+            "description": "Resource exhaustion"
+        }
+    }
+}

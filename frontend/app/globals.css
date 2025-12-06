@@ -1,0 +1,253 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Severity Colors - Consistent across app */
+    --severity-critical: 239 68 68;
+    /* red-500 */
+    --severity-high: 249 115 22;
+    /* orange-500 */
+    --severity-medium: 234 179 8;
+    /* yellow-500 */
+    --severity-low: 59 130 246;
+    /* blue-500 */
+
+    /* Urgency Colors */
+    --urgency-critical: 220 38 38;
+    /* red-700 */
+    --urgency-high: 234 88 12;
+    /* orange-600 */
+    --urgency-medium: 202 138 4;
+    /* yellow-600 */
+    --urgency-low: 37 99 235;
+    /* blue-600 */
+
+    /* Brand Colors */
+    --brand-primary: 6 182 212;
+    /* cyan-500 */
+    --brand-secondary: 168 85 247;
+    /* purple-500 */
+    --brand-accent: 236 72 153;
+    /* pink-500 */
+  }
+
+  body {
+    @apply bg-slate-950 text-white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+  }
+}
+
+@layer utilities {
+
+  /* Glass Effects */
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-strong {
+    @apply bg-white/10 backdrop-blur-2xl border border-white/20;
+  }
+
+  /* Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500;
+  }
+
+  .bg-gradient-premium {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  }
+
+  /* Shadows & Depth */
+  .shadow-premium {
+    box-shadow: 0 10px 40px -15px rgba(0, 0, 0, 0.5),
+      0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+
+  .shadow-glow-cyan {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3),
+      0 0 40px rgba(6, 182, 212, 0.1);
+  }
+
+  .shadow-glow-purple {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3),
+      0 0 40px rgba(168, 85, 247, 0.1);
+  }
+
+  /* Border Glow */
+  .glow-border {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3),
+      inset 0 0 15px rgba(6, 182, 212, 0.1);
+  }
+
+  .glow-border-purple {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3),
+      inset 0 0 15px rgba(168, 85, 247, 0.1);
+  }
+
+  /* Scrollbar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Hover Effects */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-premium;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* Animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  background-size: 1000px 100%;
+}
+
+/* Gradient Background */
+.gradient-bg {
+  background: radial-gradient(ellipse at top, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+}
+
+/* Card Hover Effect */
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply bg-slate-800/80 border-cyan-500/50 shadow-glow-cyan;
+  transform: translateY(-2px);
+}
+
+/* Button Premium */
+.btn-premium {
+  @apply px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg shadow-premium hover:from-cyan-400 hover:to-blue-500 hover:shadow-glow-cyan transition-all duration-300 ease-out hover:-translate-y-0.5;
+}
+
+/* Stat Card */
+.stat-card {
+  @apply bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700 rounded-xl p-6 hover-lift card-hover shadow-premium;
+}
+
+/* Severity Badge */
+.badge-critical {
+  @apply bg-red-500/20 text-red-400 border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold uppercase;
+}
+
+.badge-high {
+  @apply bg-orange-500/20 text-orange-400 border border-orange-500/50 px-3 py-1 rounded-full text-xs font-bold uppercase;
+}
+
+.badge-medium {
+  @apply bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-3 py-1 rounded-full text-xs font-bold uppercase;
+}
+
+.badge-low {
+  @apply bg-blue-500/20 text-blue-400 border border-blue-500/50 px-3 py-1 rounded-full text-xs font-bold uppercase;
+}

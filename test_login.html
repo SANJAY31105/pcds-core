@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PCDS Login Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a1a1a; color: #fff; }
+        .container { max-width: 500px; margin: 0 auto; }
+        input { width: 100%; padding: 10px; margin: 10px 0; }
+        button { width: 100%; padding: 10px; background: #0066ff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 10px; background: #333; border-radius: 5px; }
+        .success { background: #006600; }
+        .error { background: #660000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Direct Login Test</h1>
+        <input type="email" id="email" placeholder="Email" value="admin@pcds.local">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testDashboard()">Test Dashboard (with token)</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        let token = null;
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('result');
+
+            result.innerHTML = '🔄 Testing login...';
+            result.className = 'result';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    token = data.access_token;
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        ✅ <b>Login Successful!</b><br>
+                        Token: ${token.substring(0, 20)}...<br>
+                        <small>Token saved. Now click "Test Dashboard"</small>
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `❌ <b>Login Failed</b><br>${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (err) {
+                result.className = 'result error';
+                result.innerHTML = `❌ <b>Error:</b> ${err.message}`;
+            }
+        }
+
+        async function testDashboard() {
+            const result = document.getElementById('result');
+
+            if (!token) {
+                result.className = 'result error';
+                result.innerHTML = '❌ No token! Login first.';
+                return;
+            }
+
+            result.innerHTML = '🔄 Testing dashboard API...';
+            result.className = 'result';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v2/dashboard/overview?hours=24', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        ✅ <b>Dashboard API Works!</b><br>
+                        Entities: ${data.entities?.total || 0}<br>
+                        Detections: ${data.detections?.total || 0}<br>
+                        <small>Auth is working correctly!</small>
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `
+                        ❌ <b>Dashboard Failed (Status: ${response.status})</b><br>
+                        ${JSON.stringify(data, null, 2)}
+                    `;
+                }
+            } catch (err) {
+                result.className = 'result error';
+                result.innerHTML = `❌ <b>Error:</b> ${err.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

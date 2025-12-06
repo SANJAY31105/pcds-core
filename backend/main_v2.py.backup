@@ -1,0 +1,443 @@
+"""
+PCDS Enterprise v2 - Main FastAPI Application
+Production-ready NDR platform with full API v2 integration
+"""
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+import asyncio
+from datetime import datetime
+from typing import Set, Dict, List
+import json
+import random
+
+class ConnectionManager:
+    """Manage WebSocket connections for real-time updates"""
+    
+    def __init__(self):
+        self.active_connections: Set[WebSocket] = set()
+    
+    async def connect(self, websocket: WebSocket):
+        """Accept and store new WebSocket connection"""
+        await websocket.accept()
+        self.active_connections.add(websocket)
+        print(f"✅ WebSocket connected. Total connections: {len(self.active_connections)}")
+    
+    def disconnect(self, websocket: WebSocket):
+        """Remove WebSocket connection"""
+        self.active_connections.discard(websocket)
+        print(f"❌ WebSocket disconnected. Total connections: {len(self.active_connections)}")
+    
+    async def broadcast(self, message: dict):
+        """Broadcast message to all connected clients"""
+        if not self.active_connections:
+            return
+        
+        message_json = json.dumps(message)
+        disconnected = set()
+        
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message_json)
+            except Exception as e:
+                print(f"⚠️ WebSocket send error: {e}")
+                disconnected.add(connection)
+        
+        # Remove disconnected clients
+        for conn in disconnected:
+            self.active_connections.discard(conn)
+    
+    async def send_personal(self, message: dict, websocket: WebSocket):
+        """Send message to specific client"""
+        try:
+            await websocket.send_json(message)
+        except Exception as e:
+            print(f"⚠️ WebSocket send error: {e}")
+            self.disconnect(websocket)
+
+
+ws_manager = ConnectionManager()
+
+
+# ============================================
+# Background Tasks (Simulation & Heartbeat)
+# ============================================
+
+async def system_heartbeat():
+    """
+    Periodic system heartbeat
+    Broadcasts system status to all connected WebSocket clients
+    """
+    while True:
+        try:
+            await asyncio.sleep(settings.WS_HEARTBEAT_INTERVAL)
+            
+            # Broadcast heartbeat
+            await ws_manager.broadcast({
+                "type": "heartbeat",
+                "timestamp": datetime.utcnow().isoformat(),
+                "connections": len(ws_manager.active_connections),
+                "status": "operational"
+            })
+            
+        except Exception as e:
+            print(f"⚠️ Heartbeat error: {e}")
+            await asyncio.sleep(5)
+
+async def simulate_threats():
+    """
+    Background task to generate realistic threat data for demo purposes.
+    FIX: Now includes 'category' and 'confidence' to pass validation.
+    """
+    print("🎯 Starting realistic threat simulation...")
+    while True:
+        try:
+            # Random delay between threats (5-15 seconds)
+            await asyncio.sleep(random.randint(5, 15))
+            
+            # Generate a fake detection
+            threat_data = {
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.utcnow().isoformat(),
+                "source_ip": f"192.168.1.{random.randint(2, 254)}",
+                "destination_ip": "10.0.0.5",
+                "protocol": random.choice(["TCP", "UDP", "HTTP", "DNS"]),
+                "severity": random.choice(["low", "medium", "high", "critical"]),
+                "description": "Anomalous traffic pattern detected by simulation engine",
+                
+                # --- FIX: Added these required fields ---
+                "category": random.choice(["Malware", "Intrusion", "Policy Violation", "C2 Communication"]),
+                "confidence": round(random.uniform(0.60, 0.99), 2),
+                # ----------------------------------------
+                
+                "status": "new"
+            }
+            
+            # Broadcast to frontend via WebSocket
+            await ws_manager.broadcast({
+                "type": "new_detection",
+                "data": threat_data,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            
+            print(f"⚡ Sim: Generated {threat_data['severity']} threat ({threat_data['category']})")
+            
+        except Exception as e:
+            print(f"⚠️ Simulation error: {e}")
+            await asyncio.sleep(5)
+
+
+# ============================================
+# Application Lifespan
+# ============================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application startup and shutdown handler"""
+    print("\n" + "=" * 60)
+    print("🚀 Starting PCDS Enterprise v2.0")
+    print("=" * 60)
+    
+    # Initialize database
+    print("\n📊 Initializing database...")
+    try:
+        db_ready = init_db()
+        if db_ready:
+            print("✅ Database connection verified")
+        else:
+            print("⚠️  Database initialization check failed")
+    except Exception as e:
+        print(f"⚠️  Database error: {e}")
+    
+    # Start background tasks
+    print("\n🔄 Starting background tasks...")
+    asyncio.create_task(system_heartbeat())
+    asyncio.create_task(simulate_threats()) # <--- Added Simulation Task Here
+    print("✅ System heartbeat & Simulation engine started")
+    
+    print("\n" + "=" * 60)
+    print(f"✅ PCDS Enterprise v2.0 Ready")
+    print(f"📡 API Base: {settings.API_V2_PREFIX}")
+    print(f"🌐 CORS Origins: {settings.CORS_ORIGINS}")
+    print("=" * 60 + "\n")
+    
+    yield
+    
+    # Shutdown
+    print("\n🛑 Shutting down PCDS Enterprise...")
+
+
+# ============================================
+# FastAPI Application
+# ============================================
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Enterprise-grade Network Detection and Response Platform",
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
+
+# CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
+)
+
+
+# ============================================
+# Register API v2 Routers
+# ============================================
+
+# Entities
+app.include_router(entities_router, prefix=settings.API_V2_PREFIX)
+
+# Detections
+app.include_router(detections_router, prefix=settings.API_V2_PREFIX)
+
+# Campaigns
+app.include_router(campaigns_router, prefix=settings.API_V2_PREFIX)
+
+# Investigations
+app.include_router(investigations_router, prefix=settings.API_V2_PREFIX)
+
+# Threat Hunting
+app.include_router(hunt_router, prefix=settings.API_V2_PREFIX)
+
+# MITRE ATT&CK
+app.include_router(mitre_router, prefix=settings.API_V2_PREFIX)
+
+# Dashboard
+app.include_router(dashboard_router, prefix=settings.API_V2_PREFIX)
+
+
+# ============================================
+# Root & Health Endpoints
+# ============================================
+
+@app.get("/")
+async def root():
+    """API root endpoint"""
+    return {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "operational",
+        "api": {
+            "v2": settings.API_V2_PREFIX,
+            "docs": "/api/docs",
+            "redoc": "/api/redoc"
+        },
+        "endpoints": {
+            "entities": f"{settings.API_V2_PREFIX}/entities",
+            "detections": f"{settings.API_V2_PREFIX}/detections",
+            "campaigns": f"{settings.API_V2_PREFIX}/campaigns",
+            "investigations": f"{settings.API_V2_PREFIX}/investigations",
+            "hunt": f"{settings.API_V2_PREFIX}/hunt",
+            "mitre": f"{settings.API_V2_PREFIX}/mitre",
+            "dashboard": f"{settings.API_V2_PREFIX}/dashboard/overview"
+        },
+        "websocket": "/ws"
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    from config.database import db_manager
+    
+    db_status = "connected"
+    try:
+        if hasattr(db_manager, "execute_query"):
+             db_manager.execute_query("SELECT 1")
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "healthy" if "error" not in db_status else "degraded",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": settings.APP_VERSION,
+        "database": db_status,
+        "websocket_connections": len(ws_manager.active_connections)
+    }
+
+
+@app.get("/api/v2/status")
+async def api_status():
+    """Detailed API status"""
+    from config.database import db_manager
+    
+    # Get database statistics safely
+    stats = {}
+    try:
+        if hasattr(db_manager, "execute_one"):
+            stats = db_manager.execute_one("""
+                SELECT 
+                    (SELECT COUNT(*) FROM entities) as entities,
+                    (SELECT COUNT(*) FROM detections) as detections,
+                    (SELECT COUNT(*) FROM attack_campaigns) as campaigns,
+                    (SELECT COUNT(*) FROM investigations) as investigations
+            """)
+    except Exception:
+        stats = {}
+    
+    return {
+        "api_version": "2.0",
+        "status": "operational",
+        "uptime_seconds": 0,  # TODO: Track actual uptime
+        "database": {
+            "status": "connected",
+            "entities": stats.get('entities', 0),
+            "detections": stats.get('detections', 0),
+            "campaigns": stats.get('campaigns', 0),
+            "investigations": stats.get('investigations', 0)
+        },
+        "websocket": {
+            "active_connections": len(ws_manager.active_connections),
+            "status": "operational"
+        },
+        "features": {
+            "entity_scoring": True,
+            "detection_engine": True,
+            "mitre_mapping": True,
+            "campaign_correlation": True,
+            "threat_hunting": True,
+            "investigations": True
+        }
+    }
+
+
+# ============================================
+# WebSocket Endpoint
+# ============================================
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time updates
+    """
+    await ws_manager.connect(websocket)
+    
+    # Send welcome message
+    await ws_manager.send_personal({
+        "type": "connection",
+        "message": "Connected to PCDS Enterprise",
+        "timestamp": datetime.utcnow().isoformat(),
+        "server_version": settings.APP_VERSION
+    }, websocket)
+    
+    try:
+        while True:
+            # Receive messages from client
+            data = await websocket.receive_text()
+            
+            try:
+                message = json.loads(data)
+                
+                # Handle client requests
+                if message.get("action") == "ping":
+                    await ws_manager.send_personal({
+                        "type": "pong",
+                        "timestamp": datetime.utcnow().isoformat()
+                    }, websocket)
+                
+                elif message.get("action") == "subscribe":
+                    await ws_manager.send_personal({
+                        "type": "subscription_confirmed",
+                        "channels": message.get("channels", []),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }, websocket)
+                
+            except json.JSONDecodeError:
+                await ws_manager.send_personal({
+                    "type": "error",
+                    "message": "Invalid JSON"
+                }, websocket)
+    
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception as e:
+        print(f"⚠️ WebSocket error: {e}")
+        ws_manager.disconnect(websocket)
+
+
+# ============================================
+# Utility Functions for Broadcasting
+# ============================================
+
+async def broadcast_new_detection(detection: dict):
+    """Broadcast new detection to all clients"""
+    await ws_manager.broadcast({
+        "type": "new_detection",
+        "data": detection,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
+
+async def broadcast_entity_score_update(entity_id: str, score_data: dict):
+    """Broadcast entity score update"""
+    await ws_manager.broadcast({
+        "type": "entity_score_update",
+        "entity_id": entity_id,
+        "data": score_data,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
+
+async def broadcast_campaign_alert(campaign: dict):
+    """Broadcast new campaign alert"""
+    await ws_manager.broadcast({
+        "type": "campaign_alert",
+        "data": campaign,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
+
+# ============================================
+# Error Handlers
+# ============================================
+
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "Not Found",
+            "message": "The requested resource was not found",
+            "path": str(request.url)
+        }
+    )
+
+
+@app.exception_handler(500)
+async def internal_error_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "message": "An internal error occurred. Please try again later.",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    )
+
+
+# ============================================
+# Run Application
+# ============================================
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run(
+        "main_v2:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+        log_level="info"
+    )
