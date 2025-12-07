@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import { ThemeProvider, ThemeToggle } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ToastProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +20,15 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.className} bg-slate-950 text-slate-100`}>
-                {children}
+                <ThemeProvider>
+                    <ToastProvider>
+                        {/* Theme Toggle Button - Fixed Position */}
+                        <div className="fixed top-4 right-4 z-50">
+                            <ThemeToggle />
+                        </div>
+                        {children}
+                    </ToastProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

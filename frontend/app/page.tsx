@@ -87,30 +87,30 @@ export default function HomePage() {
                 <div className="bg-gradient-to-br from-red-500/20 to-rose-600/20 p-6 rounded-xl border border-red-500/30 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                         <AlertTriangle className="w-10 h-10 text-red-400" />
-                        <span className="px-3 py-1 text-xs font-bold bg-red-500/30 text-red-400 rounded-full">CRITICAL</span>
+                        <span className="px-3 py-1 text-xs font-bold bg-red-500/30 text-red-300 rounded-full">CRITICAL</span>
                     </div>
-                    <p className="text-slate-300 text-sm mb-1">Critical Entities</p>
-                    <p className="text-4xl font-bold text-white">{entity_stats.critical}</p>
-                    <p className="text-xs text-slate-400 mt-2">Require immediate attention</p>
+                    <p className="text-white text-sm font-medium mb-1">Critical Entities</p>
+                    <p className="text-4xl font-bold text-red-400">{entity_stats.critical}</p>
+                    <p className="text-xs text-gray-300 mt-2">Require immediate attention</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-orange-500/20 to-amber-600/20 p-6 rounded-xl border border-orange-500/30 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                         <Target className="w-10 h-10 text-orange-400" />
-                        <span className="px-3 py-1 text-xs font-bold bg-orange-500/30 text-orange-400 rounded-full">ACTIVE</span>
+                        <span className="px-3 py-1 text-xs font-bold bg-orange-500/30 text-orange-300 rounded-full">ACTIVE</span>
                     </div>
-                    <p className="text-slate-300 text-sm mb-1">Active Campaigns</p>
-                    <p className="text-4xl font-bold text-white">{metrics.active_campaigns}</p>
-                    <p className="text-xs text-slate-400 mt-2">Multi-stage attacks in progress</p>
+                    <p className="text-white text-sm font-medium mb-1">Active Campaigns</p>
+                    <p className="text-4xl font-bold text-orange-400">{metrics.active_campaigns}</p>
+                    <p className="text-xs text-gray-300 mt-2">Multi-stage attacks in progress</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 p-6 rounded-xl border border-cyan-500/30 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                         <Clock className="w-10 h-10 text-cyan-400" />
-                        <span className="px-3 py-1 text-xs font-bold bg-cyan-500/30 text-cyan-400 rounded-full">MTTD</span>
+                        <span className="px-3 py-1 text-xs font-bold bg-cyan-500/30 text-cyan-300 rounded-full">MTTD</span>
                     </div>
-                    <p className="text-slate-300 text-sm mb-1">Mean Time to Detect</p>
-                    <p className="text-4xl font-bold text-white">{metrics.mttd_minutes}<span className="text-xl text-slate-400">m</span></p>
+                    <p className="text-white text-sm font-medium mb-1">Mean Time to Detect</p>
+                    <p className="text-4xl font-bold text-cyan-400">{metrics.mttd_minutes}<span className="text-xl text-cyan-300">m</span></p>
                     <p className="text-xs text-green-400 mt-2 flex items-center">
                         <TrendingUp className="w-3 h-3 mr-1" />
                         35% faster than industry avg
@@ -120,10 +120,10 @@ export default function HomePage() {
                 <div className="bg-gradient-to-br from-purple-500/20 to-pink-600/20 p-6 rounded-xl border border-purple-500/30 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                         <Zap className="w-10 h-10 text-purple-400" />
-                        <span className="px-3 py-1 text-xs font-bold bg-purple-500/30 text-purple-400 rounded-full">MTTR</span>
+                        <span className="px-3 py-1 text-xs font-bold bg-purple-500/30 text-purple-300 rounded-full">MTTR</span>
                     </div>
-                    <p className="text-slate-300 text-sm mb-1">Mean Time to Respond</p>
-                    <p className="text-4xl font-bold text-white">{metrics.mttr_minutes}<span className="text-xl text-slate-400">m</span></p>
+                    <p className="text-white text-sm font-medium mb-1">Mean Time to Respond</p>
+                    <p className="text-4xl font-bold text-purple-400">{metrics.mttr_minutes}<span className="text-xl text-purple-300">m</span></p>
                     <p className="text-xs text-green-400 mt-2 flex items-center">
                         <TrendingUp className="w-3 h-3 mr-1" />
                         22% improvement this month
@@ -178,14 +178,17 @@ export default function HomePage() {
                         MITRE ATT&CK Coverage
                     </h2>
                     <div className="space-y-3">
-                        {Object.entries(tactic_distribution).slice(0, 6).map(([tactic, count], index) => (
-                            <div key={tactic} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg">
-                                <span className="text-sm text-slate-300">{tactic}</span>
-                                <span className="px-3 py-1 text-sm font-bold bg-cyan-500/20 text-cyan-400 rounded-full">
-                                    {count}
-                                </span>
-                            </div>
-                        ))}
+                        {Object.entries(tactic_distribution)
+                            .filter(([tactic]) => tactic && tactic !== 'null' && tactic !== 'undefined')
+                            .slice(0, 6)
+                            .map(([tactic, count], index) => (
+                                <div key={tactic} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg">
+                                    <span className="text-sm text-white font-medium">{tactic}</span>
+                                    <span className="px-3 py-1 text-sm font-bold bg-cyan-500/20 text-cyan-400 rounded-full">
+                                        {count}
+                                    </span>
+                                </div>
+                            ))}
                     </div>
                     <Link
                         href="/mitre"

@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Shield, Target, Search, FileText,
-    Grid3x3, Settings, Activity, AlertTriangle, ClipboardList, Crosshair, ShieldAlert, Bot
+    Grid3x3, Settings, Activity, AlertTriangle, ClipboardList, Crosshair, ShieldAlert, Bot, Bell, Clock
 } from 'lucide-react';
 
 const navigation = [
     { name: 'Overview', href: '/', icon: LayoutDashboard },
     { name: 'Entities', href: '/entities', icon: Target },
     { name: 'Detections', href: '/detections', icon: AlertTriangle },
+    { name: 'Approvals', href: '/approvals', icon: Bell },
+    { name: 'Timeline', href: '/timeline', icon: Clock },
     { name: 'Investigations', href: '/investigations', icon: ClipboardList },
     { name: 'Playbooks', href: '/playbooks', icon: Bot },
     { name: 'Hunt', href: '/hunt', icon: Crosshair },

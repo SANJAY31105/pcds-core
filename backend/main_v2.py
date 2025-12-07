@@ -28,6 +28,7 @@ from api.v2.reports import router as reports_router
 from api.v2.auth import router as auth_v2_router  # NEW: V2 Auth API
 from api.v2.kafka_api import router as kafka_router  # Kafka Enterprise API
 from api.v2.playbooks_api import router as playbooks_router  # Automated Playbooks
+from api.v2.response_api import router as response_router  # Decision Engine
 
 # ML Engine
 from ml.anomaly_detector import anomaly_detector
@@ -160,6 +161,7 @@ app.include_router(dashboard_router, prefix=settings.API_V2_PREFIX)
 app.include_router(reports_router, prefix=settings.API_V2_PREFIX)
 app.include_router(kafka_router, prefix=settings.API_V2_PREFIX)  # Kafka Enterprise API
 app.include_router(playbooks_router, prefix=settings.API_V2_PREFIX)  # Automated Playbooks
+app.include_router(response_router, prefix=settings.API_V2_PREFIX)  # Decision Engine
 
 
 # ============================================
