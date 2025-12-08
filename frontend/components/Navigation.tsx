@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Shield, Target, Search, FileText,
-    Settings, Activity, AlertTriangle, ClipboardList, Crosshair, Bot, Bell, Clock
+    Settings, Activity, AlertTriangle, ClipboardList, Crosshair, Bot, Bell, Clock, Users
 } from 'lucide-react';
 
 const navigation = [
     { name: 'Overview', href: '/', icon: LayoutDashboard },
     { name: 'Entities', href: '/entities', icon: Target },
     { name: 'Detections', href: '/detections', icon: AlertTriangle },
-    { name: 'Approvals', href: '/approvals', icon: Bell },
+    { name: 'Alerts', href: '/alerts', icon: Bell },
     { name: 'Timeline', href: '/timeline', icon: Clock },
     { name: 'Investigations', href: '/investigations', icon: ClipboardList },
     { name: 'Playbooks', href: '/playbooks', icon: Bot },
@@ -19,6 +19,8 @@ const navigation = [
     { name: 'MITRE', href: '/mitre', icon: Shield },
     { name: 'Live Feed', href: '/live', icon: Activity },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Users', href: '/users', icon: Users },
+    { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Navigation() {
