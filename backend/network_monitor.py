@@ -132,11 +132,24 @@ class RealNetworkMonitor:
         if self.running:
             return
         
+        # Clear old cached data
+        self.connections = {}
+        self.events = deque(maxlen=1000)
+        self.stats = {
+            "total_connections": 0,
+            "active_connections": 0,
+            "bytes_sent": 0,
+            "bytes_recv": 0,
+            "suspicious_count": 0,
+            "packets_analyzed": 0,
+            "start_time": None
+        }
+        
         self.running = True
         self.stats["start_time"] = datetime.now().isoformat()
         self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self._monitor_thread.start()
-        print("🟢 Network monitoring started")
+        print("🟢 Network monitoring started (cache cleared)")
     
     def stop(self):
         """Stop monitoring"""
