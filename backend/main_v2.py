@@ -199,6 +199,45 @@ async def health():
 
 
 # ============================================
+# Network Monitoring Endpoints
+# ============================================
+
+from network_monitor import network_monitor, start_network_monitoring, stop_network_monitoring
+
+@app.post("/api/v2/network/start")
+async def start_network():
+    """Start real network monitoring"""
+    start_network_monitoring()
+    return {"status": "started", "message": "Network monitoring activated"}
+
+@app.post("/api/v2/network/stop")
+async def stop_network():
+    """Stop network monitoring"""
+    stop_network_monitoring()
+    return {"status": "stopped", "message": "Network monitoring deactivated"}
+
+@app.get("/api/v2/network/stats")
+async def get_network_stats():
+    """Get network monitoring statistics"""
+    return network_monitor.get_stats()
+
+@app.get("/api/v2/network/connections")
+async def get_connections(limit: int = 50):
+    """Get active network connections"""
+    return {"connections": network_monitor.get_connections(limit)}
+
+@app.get("/api/v2/network/events")
+async def get_network_events(limit: int = 100):
+    """Get network events for live feed"""
+    return {"events": network_monitor.get_events(limit)}
+
+@app.get("/api/v2/network/suspicious")
+async def get_suspicious():
+    """Get suspicious connections only"""
+    return {"suspicious": network_monitor.get_suspicious()}
+
+
+# ============================================
 # WebSocket Endpoint
 # ============================================
 

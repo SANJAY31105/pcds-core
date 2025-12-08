@@ -24,10 +24,18 @@ export interface Entity {
 }
 
 export interface Detection {
+    id: string;
     type: string;
+    detection_type?: string;
+    title?: string;
+    description?: string;
     severity: 'critical' | 'high' | 'medium' | 'low';
     timestamp: string;
+    detected_at?: string;
     confidence: number;
+    confidence_score?: number;
+    source_ip?: string;
+    entity_id?: string;
     metadata: Record<string, any>;
     mitre?: MITREData;
 }
