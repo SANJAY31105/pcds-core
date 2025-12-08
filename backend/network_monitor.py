@@ -21,24 +21,88 @@ except ImportError:
     ANOMALY_DETECTION_ENABLED = False
     print("⚠️ Anomaly detector not available for network monitor")
 
-# MITRE ATT&CK mappings for suspicious patterns
+# MITRE ATT&CK mappings for ACTUALLY suspicious patterns (real threats only)
 SUSPICIOUS_PORTS = {
-    4444: {"name": "Metasploit", "technique": "T1571", "severity": "critical"},
+    4444: {"name": "Metasploit Default", "technique": "T1571", "severity": "critical"},
     5555: {"name": "Android Debug", "technique": "T1071", "severity": "high"},
     6666: {"name": "IRC Botnet", "technique": "T1071", "severity": "critical"},
+    6667: {"name": "IRC", "technique": "T1071", "severity": "high"},
     31337: {"name": "Back Orifice", "technique": "T1571", "severity": "critical"},
-    1337: {"name": "Hacker Port", "technique": "T1571", "severity": "high"},
-    8080: {"name": "HTTP Proxy", "technique": "T1090", "severity": "low"},
-    3389: {"name": "RDP", "technique": "T1021", "severity": "medium"},
-    22: {"name": "SSH", "technique": "T1021", "severity": "low"},
-    23: {"name": "Telnet", "technique": "T1021", "severity": "high"},
-    445: {"name": "SMB", "technique": "T1021", "severity": "medium"},
+    12345: {"name": "NetBus", "technique": "T1571", "severity": "critical"},
+    27374: {"name": "SubSeven", "technique": "T1571", "severity": "critical"},
+    20034: {"name": "NetBus 2", "technique": "T1571", "severity": "critical"},
 }
 
-KNOWN_SAFE_DOMAINS = [
-    "microsoft.com", "google.com", "github.com", "amazonaws.com",
-    "cloudflare.com", "akamai.net", "azure.com", "windows.net"
+# Trusted domains - connections to these are NEVER suspicious
+TRUSTED_DOMAINS = [
+    # Microsoft
+    "microsoft.com", "windows.com", "windows.net", "azure.com", "office.com", 
+    "office365.com", "live.com", "outlook.com", "skype.com", "msn.com",
+    "microsoftonline.com", "bing.com", "xbox.com", "visualstudio.com",
+    # Google
+    "google.com", "googleapis.com", "gstatic.com", "youtube.com", "gmail.com",
+    "googlevideo.com", "googleusercontent.com", "android.com", "chrome.com",
+    # Meta/Facebook
+    "facebook.com", "fbcdn.net", "instagram.com", "whatsapp.com", "whatsapp.net",
+    "fb.com", "messenger.com", "meta.com",
+    # Cloud Providers
+    "amazonaws.com", "aws.amazon.com", "cloudflare.com", "cloudflare-dns.com",
+    "akamai.net", "akamaized.net", "fastly.net", "cloudfront.net",
+    # Development
+    "github.com", "githubusercontent.com", "gitlab.com", "bitbucket.org",
+    "docker.com", "docker.io", "npmjs.com", "pypi.org", "nuget.org",
+    # Communication
+    "slack.com", "discord.com", "discordapp.com", "zoom.us", "zoomgov.com",
+    "teams.microsoft.com", "webex.com", "gotomeeting.com",
+    # Common Services
+    "apple.com", "icloud.com", "spotify.com", "netflix.com", "twitter.com",
+    "linkedin.com", "dropbox.com", "box.com", "adobe.com", "autodesk.com",
+    # Security/Updates
+    "kaspersky.com", "norton.com", "mcafee.com", "avast.com", "avg.com",
+    "symantec.com", "sophos.com", "crowdstrike.com", "sentinelone.com",
+    # DNS
+    "1e100.net", "akadns.net", "dnspod.com",
 ]
+
+# Trusted processes - these are NEVER suspicious
+TRUSTED_PROCESSES = [
+    # Browsers
+    "chrome.exe", "firefox.exe", "msedge.exe", "brave.exe", "opera.exe",
+    "iexplore.exe", "safari.exe", "chromium.exe",
+    # Microsoft
+    "teams.exe", "outlook.exe", "onedrive.exe", "code.exe", "devenv.exe",
+    "msteams.exe", "excel.exe", "word.exe", "powerpnt.exe", "winword.exe",
+    "svchost.exe", "explorer.exe", "searchhost.exe", "runtimebroker.exe",
+    "microsoft.sharepoint.exe", "msedgewebview2.exe",
+    # Development
+    "python.exe", "python3.exe", "pythonw.exe", "node.exe", "npm.exe",
+    "git.exe", "docker.exe", "java.exe", "javaw.exe", "dotnet.exe",
+    "code.exe", "devenv.exe", "rider64.exe", "idea64.exe", "pycharm64.exe",
+    # Communication
+    "slack.exe", "discord.exe", "zoom.exe", "whatsapp.exe", "telegram.exe",
+    "signal.exe", "skype.exe", "webex.exe",
+    # Cloud Sync
+    "googledrivefs.exe", "dropbox.exe", "icloudservices.exe",
+    "onedrive.exe", "boxsync.exe",
+    # System
+    "system", "wininit.exe", "services.exe", "lsass.exe", "csrss.exe",
+    "smss.exe", "winlogon.exe", "spoolsv.exe", "taskhostw.exe",
+    "dllhost.exe", "conhost.exe", "backgroundtaskhost.exe",
+    # Security
+    "msmpeng.exe", "nissrv.exe", "mbamservice.exe", "avgnt.exe",
+    # Other Common
+    "spotify.exe", "steam.exe", "epicgameslauncher.exe", "origin.exe",
+    "hp.hpx.exe", "hpscanhost.exe", "hpnetworkcommunicator.exe",
+]
+
+# Trusted local addresses
+TRUSTED_LOCAL = ['127.', '192.168.', '10.', '172.16.', '172.17.', '172.18.',
+                 '172.19.', '172.20.', '172.21.', '172.22.', '172.23.',
+                 '172.24.', '172.25.', '172.26.', '172.27.', '172.28.',
+                 '172.29.', '172.30.', '172.31.', '::1', 'fe80:']
+
+# Standard safe ports
+SAFE_PORTS = [80, 443, 8080, 8443, 53, 123, 22, 21, 25, 587, 465, 993, 995, 110, 143]
 
 
 class RealNetworkMonitor:
@@ -133,8 +197,11 @@ class RealNetworkMonitor:
         # Resolve hostname
         hostname = self._resolve_hostname(remote_ip)
         
-        # Check for suspicious patterns
-        threat_info = self._analyze_connection(remote_ip, remote_port, local_port, hostname)
+        # Get process name early for analysis
+        process_name = self._get_process_name(conn.pid)
+        
+        # Check for suspicious patterns (with whitelist checks)
+        threat_info = self._analyze_connection(remote_ip, remote_port, local_port, hostname, process_name)
         
         # Calculate anomaly score if available
         anomaly_score = 0.0
@@ -156,7 +223,7 @@ class RealNetworkMonitor:
             "hostname": hostname,
             "status": conn.status,
             "pid": conn.pid,
-            "process": self._get_process_name(conn.pid),
+            "process": process_name,
             "first_seen": datetime.now().isoformat(),
             "threat_info": threat_info,
             "anomaly_score": round(anomaly_score, 3),
@@ -195,10 +262,33 @@ class RealNetworkMonitor:
         except:
             return "Unknown"
     
-    def _analyze_connection(self, remote_ip: str, remote_port: int, local_port: int, hostname: str) -> Optional[Dict]:
-        """Analyze connection for threats"""
+    def _analyze_connection(self, remote_ip: str, remote_port: int, local_port: int, hostname: str, process_name: str) -> Optional[Dict]:
+        """Analyze connection for threats - with smart whitelisting"""
         
-        # Check suspicious ports
+        # WHITELIST CHECKS FIRST - these are NEVER suspicious
+        
+        # 1. Check if process is trusted
+        if process_name.lower() in [p.lower() for p in TRUSTED_PROCESSES]:
+            return None
+        
+        # 2. Check if connecting to trusted domain
+        hostname_lower = hostname.lower()
+        for domain in TRUSTED_DOMAINS:
+            if domain in hostname_lower:
+                return None
+        
+        # 3. Check if local/internal connection
+        for prefix in TRUSTED_LOCAL:
+            if remote_ip.startswith(prefix):
+                return None
+        
+        # 4. Check if using safe standard ports (80, 443, etc.)
+        if remote_port in SAFE_PORTS:
+            return None
+        
+        # NOW CHECK FOR ACTUAL THREATS
+        
+        # Check known malicious ports
         if remote_port in SUSPICIOUS_PORTS:
             return {
                 "type": "suspicious_port",
@@ -211,15 +301,14 @@ class RealNetworkMonitor:
                 **SUSPICIOUS_PORTS[local_port]
             }
         
-        # Check for non-standard high ports with external IPs
-        if remote_port > 10000 and not any(domain in hostname for domain in KNOWN_SAFE_DOMAINS):
-            if not remote_ip.startswith(('192.168.', '10.', '172.', '127.')):
-                return {
-                    "type": "high_port_external",
-                    "name": "High Port Connection",
-                    "technique": "T1571",
-                    "severity": "medium"
-                }
+        # Unknown process + high port + external IP = suspicious
+        if remote_port > 10000 and process_name.lower() == "unknown":
+            return {
+                "type": "unknown_high_port",
+                "name": "Unknown Process High Port",
+                "technique": "T1571",
+                "severity": "medium"
+            }
         
         return None
     
