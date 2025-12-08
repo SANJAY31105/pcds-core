@@ -240,7 +240,7 @@ class RealNetworkMonitor:
             "first_seen": datetime.now().isoformat(),
             "threat_info": threat_info,
             "anomaly_score": round(anomaly_score, 3),
-            "is_suspicious": threat_info is not None or anomaly_score > 0.5
+            "is_suspicious": threat_info is not None  # ONLY flag known malware ports
         }
         
         with self._lock:
