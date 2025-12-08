@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { ThemeProvider, ThemeToggle } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ToastProvider";
+import { ModalProvider } from "@/components/ModalProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
             <body className={`${inter.className} bg-slate-950 text-slate-100`}>
                 <ThemeProvider>
                     <ToastProvider>
-                        {children}
+                        <ModalProvider>
+                            {children}
+                        </ModalProvider>
                     </ToastProvider>
                 </ThemeProvider>
             </body>

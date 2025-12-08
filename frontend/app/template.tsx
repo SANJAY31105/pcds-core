@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Navigation from "@/components/Navigation";
 import { ThemeToggle } from "@/components/ThemeProvider";
+import GlobalSearch from "@/components/GlobalSearch";
 import { User } from 'lucide-react';
 
 export default function AppLayout({
@@ -24,9 +25,12 @@ export default function AppLayout({
                 {/* Clean Header */}
                 <header className="sticky top-0 z-30 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#2a2a2a] px-6 py-3">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-base font-medium text-white">PCDS Enterprise</h2>
-                            <p className="text-xs text-[#666]">Network Detection & Response</p>
+                        <div className="flex items-center gap-6">
+                            <div>
+                                <h2 className="text-base font-medium text-white">PCDS Enterprise</h2>
+                                <p className="text-xs text-[#666]">Network Detection & Response</p>
+                            </div>
+                            <GlobalSearch />
                         </div>
 
                         {/* Right side */}

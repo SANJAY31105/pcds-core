@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
-import { ClipboardList, Search, ChevronRight, AlertTriangle, User } from 'lucide-react';
+import { ClipboardList, ChevronRight, AlertTriangle, User } from 'lucide-react';
+import { useModal } from '@/components/ModalProvider';
 
 interface Investigation {
     id: string;
@@ -18,6 +19,7 @@ interface Investigation {
 export default function InvestigationsPage() {
     const [investigations, setInvestigations] = useState<Investigation[]>([]);
     const [loading, setLoading] = useState(true);
+    const { openPrompt } = useModal();
 
     useEffect(() => {
         loadInvestigations();
@@ -29,7 +31,6 @@ export default function InvestigationsPage() {
             setInvestigations(response.investigations || []);
         } catch (error) {
             console.error('Failed to load investigations:', error);
-            // Mock data
             setInvestigations([
                 { id: '1', title: 'Ransomware Attack Investigation', status: 'in_progress', priority: 'critical', assignee: 'analyst@pcds.com', created_at: new Date().toISOString(), entity_count: 5, detection_count: 12 },
                 { id: '2', title: 'Suspicious Lateral Movement', status: 'open', priority: 'high', assignee: 'unassigned', created_at: new Date().toISOString(), entity_count: 3, detection_count: 8 },
@@ -38,6 +39,22 @@ export default function InvestigationsPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleNewInvestigation = () => {
+        openPrompt('New Investigation', 'Enter investigation title...', (title) => {
+            const newInv: Investigation = {
+                id: Date.now().toString(),
+                title,
+                status: 'open',
+                priority: 'high',
+                assignee: 'admin@pcds.com',
+                created_at: new Date().toISOString(),
+                entity_count: 0,
+                detection_count: 0
+            };
+            setInvestigations(prev => [newInv, ...prev]);
+        });
     };
 
     const getStatusColor = (status: string) => {
@@ -58,7 +75,10 @@ export default function InvestigationsPage() {
                     <h1 className="text-2xl font-semibold text-white">Investigations</h1>
                     <p className="text-[#666] text-sm mt-1">Active security investigations</p>
                 </div>
-                <button className="px-4 py-2 rounded-lg bg-[#10a37f] text-white text-sm font-medium hover:bg-[#0d8a6a] transition-colors">
+                <button
+                    onClick={handleNewInvestigation}
+                    className="px-4 py-2 rounded-lg bg-[#10a37f] text-white text-sm font-medium hover:bg-[#0d8a6a] transition-colors"
+                >
                     + New Investigation
                 </button>
             </div>
