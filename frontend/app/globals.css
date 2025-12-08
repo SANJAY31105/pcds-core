@@ -334,3 +334,288 @@ main {
   background-color: var(--accent);
   color: white;
 }
+
+/* ====================================
+   Advanced Animations
+   ==================================== */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 163, 127, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 163, 127, 0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-right {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.25s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-right {
+  animation: slide-right 0.3s ease-out;
+}
+
+/* Staggered animations for lists */
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+
+/* Loading skeleton shimmer */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-elevated) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ====================================
+   Micro-interactions
+   ==================================== */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(16, 163, 127, 0.2);
+}
+
+.hover-scale {
+  transition: transform 0.15s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-border:hover {
+  border-color: var(--accent) !important;
+}
+
+/* Click feedback */
+.active-scale:active {
+  transform: scale(0.98);
+}
+
+/* ====================================
+   Mobile Responsive Styles
+   ==================================== */
+@media (max-width: 768px) {
+
+  /* Mobile navigation */
+  .mobile-nav-hidden {
+    transform: translateX(-100%);
+  }
+
+  .mobile-nav-visible {
+    transform: translateX(0);
+  }
+
+  /* Grid adjustments */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards stack */
+  .card {
+    padding: 1rem;
+  }
+
+  /* Smaller text */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Hide on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ====================================
+   Enhanced Card Styles
+   ==================================== */
+.card-interactive {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  border-color: var(--accent);
+  background-color: var(--bg-tertiary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ====================================
+   Chart Tooltips
+   ==================================== */
+.recharts-tooltip-wrapper {
+  z-index: 1000 !important;
+}
+
+.recharts-default-tooltip {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: 8px !important;
+}
+
+/* ====================================
+   Nav Link Active State
+   ==================================== */
+.nav-link {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background-color: var(--accent);
+  border-radius: 0 3px 3px 0;
+  transition: height 0.2s ease;
+}
+
+.nav-link:hover::before,
+.nav-link.active::before {
+  height: 24px;
+}
+
+/* ====================================
+   Timeline Animation
+   ==================================== */
+.timeline-event {
+  animation: slide-right 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.timeline-event:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.timeline-event:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.timeline-event:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.timeline-event:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+.timeline-event:nth-child(5) {
+  animation-delay: 0.2s;
+}

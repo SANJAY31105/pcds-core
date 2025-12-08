@@ -470,10 +470,173 @@ class DataExfiltrationDetector:
         return detections
 
 
+class CredentialTheftDetector:
+    """Detect credential theft and harvesting attacks"""
+    
+    def detect_mimikatz(self, process_events: List[Dict]) -> List[Dict]:
+        """Detect Mimikatz usage patterns"""
+        detections = []
+        
+        mimikatz_indicators = [
+            'mimikatz', 'sekurlsa', 'lsadump', 'kerberos::',
+            'privilege::debug', 'token::elevate', 'sekurlsa::logonpasswords'
+        ]
+        
+        for event in process_events:
+            command = event.get('command_line', '').lower()
+            process_name = event.get('process_name', '').lower()
+            
+            if any(indicator in command or indicator in process_name for indicator in mimikatz_indicators):
+                detections.append({
+                    'detection_type': 'mimikatz',
+                    'severity': 'critical',
+                    'confidence_score': 0.95,
+                    'source_ip': event.get('source_ip'),
+                    'title': 'Mimikatz Credential Theft Detected',
+                    'description': f'Credential dumping tool detected on {event.get("hostname", "unknown")}',
+                    'technique_id': 'T1003',
+                    'tactic_id': 'TA0006',
+                    'kill_chain_stage': 6,
+                    'metadata': {
+                        'process_name': event.get('process_name'),
+                        'command_line': event.get('command_line', '')[:200],
+                        'user': event.get('username')
+                    }
+                })
+        
+        return detections
+    
+    def detect_lsass_access(self, process_events: List[Dict]) -> List[Dict]:
+        """Detect LSASS memory access (credential dumping)"""
+        detections = []
+        
+        lsass_indicators = ['lsass.exe', 'procdump', 'comsvcs.dll', 'rundll32']
+        
+        for event in process_events:
+            command = event.get('command_line', '').lower()
+            process_name = event.get('process_name', '').lower()
+            target = event.get('target_process', '').lower()
+            
+            # Detect LSASS access patterns
+            if ('lsass' in target or 'lsass' in command) and process_name not in ['lsass.exe']:
+                detections.append({
+                    'detection_type': 'lsass_access',
+                    'severity': 'critical',
+                    'confidence_score': 0.9,
+                    'source_ip': event.get('source_ip'),
+                    'title': 'LSASS Memory Access Detected',
+                    'description': f'Suspicious access to LSASS process on {event.get("hostname", "unknown")}',
+                    'technique_id': 'T1003.001',
+                    'tactic_id': 'TA0006',
+                    'kill_chain_stage': 6,
+                    'metadata': {
+                        'process_name': event.get('process_name'),
+                        'target_process': event.get('target_process'),
+                        'user': event.get('username')
+                    }
+                })
+            
+            # Procdump & comsvcs patterns
+            if any(ind in command for ind in ['procdump', 'comsvcs.dll', 'minidump']):
+                if 'lsass' in command or any(ind in command for ind in lsass_indicators):
+                    detections.append({
+                        'detection_type': 'credential_dump',
+                        'severity': 'critical',
+                        'confidence_score': 0.92,
+                        'source_ip': event.get('source_ip'),
+                        'title': 'Credential Dump Tool Detected',
+                        'description': f'Memory dump of credentials on {event.get("hostname", "unknown")}',
+                        'technique_id': 'T1003.001',
+                        'tactic_id': 'TA0006',
+                        'kill_chain_stage': 6,
+                        'metadata': {
+                            'command_line': event.get('command_line', '')[:200]
+                        }
+                    })
+        
+        return detections
+    
+    def detect_password_spraying(self, auth_events: List[Dict]) -> List[Dict]:
+        """Detect password spraying attacks"""
+        detections = []
+        
+        # Group failed auth by source IP
+        by_source = defaultdict(list)
+        for event in auth_events:
+            if event.get('event_type') == 'authentication_failure':
+                source = event.get('source_ip')
+                if source:
+                    by_source[source].append(event)
+        
+        for source_ip, failures in by_source.items():
+            unique_users = set(e.get('username') for e in failures if e.get('username'))
+            
+            # Password spray pattern: Many users, few attempts per user
+            if len(unique_users) >= 5 and len(failures) >= 10:
+                avg_attempts = len(failures) / len(unique_users)
+                
+                # Spray if low attempts per user but many users
+                if avg_attempts < 3:
+                    detections.append({
+                        'detection_type': 'password_spray',
+                        'severity': 'high',
+                        'confidence_score': 0.85,
+                        'source_ip': source_ip,
+                        'title': f'Password Spraying Attack from {source_ip}',
+                        'description': f'{len(unique_users)} accounts targeted with {len(failures)} attempts',
+                        'technique_id': 'T1110.003',
+                        'tactic_id': 'TA0006',
+                        'kill_chain_stage': 6,
+                        'metadata': {
+                            'unique_accounts': len(unique_users),
+                            'total_failures': len(failures),
+                            'avg_attempts_per_user': round(avg_attempts, 2)
+                        }
+                    })
+        
+        return detections
+    
+    def detect_kerberoasting(self, auth_events: List[Dict]) -> List[Dict]:
+        """Detect Kerberoasting attacks"""
+        detections = []
+        
+        # Look for excessive TGS requests for service accounts
+        by_user = defaultdict(list)
+        for event in auth_events:
+            if event.get('event_type') == 'tgs_request':
+                user = event.get('username')
+                if user:
+                    by_user[user].append(event)
+        
+        for username, requests in by_user.items():
+            service_accounts = set(e.get('service_account') for e in requests if e.get('service_account'))
+            
+            # Kerberoasting: User requesting many service tickets
+            if len(service_accounts) >= 5:
+                detections.append({
+                    'detection_type': 'kerberoasting',
+                    'severity': 'high',
+                    'confidence_score': 0.8,
+                    'username': username,
+                    'title': f'Kerberoasting Detected: {username}',
+                    'description': f'{len(service_accounts)} service ticket requests',
+                    'technique_id': 'T1558.003',
+                    'tactic_id': 'TA0006',
+                    'kill_chain_stage': 6,
+                    'metadata': {
+                        'service_accounts_targeted': len(service_accounts),
+                        'request_count': len(requests)
+                    }
+                })
+        
+        return detections
+
+
 # Export all detector classes
 __all__ = [
     'LateralMovementDetector',
     'PrivilegeEscalationDetector',
     'CommandAndControlDetector',
-    'DataExfiltrationDetector'
+    'DataExfiltrationDetector',
+    'CredentialTheftDetector'
 ]
