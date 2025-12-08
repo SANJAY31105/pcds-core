@@ -1,38 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { apiClient } from '@/lib/api';
-import { Entity } from '@/types';
-import { Shield, Activity, Clock, AlertTriangle } from 'lucide-react';
+import { Entity, Detection } from '@/types';
+import Link from 'next/link';
+import { ArrowLeft, Target, AlertTriangle, Clock, Shield, Activity } from 'lucide-react';
 
 export default function EntityDetailPage() {
     const params = useParams();
-    const entityId = params?.id as string;
-
     const [entity, setEntity] = useState<Entity | null>(null);
-    const [detections, setDetections] = useState<any[]>([]);
+    const [detections, setDetections] = useState<Detection[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (entityId) {
-            loadEntityData();
-        }
-    }, [entityId]);
+        if (params.id) loadEntity(params.id as string);
+    }, [params.id]);
 
-    const loadEntityData = async () => {
+    const loadEntity = async (id: string) => {
         try {
-            // Get entity details
-            const entityData = await apiClient.getEntity(entityId);
-            setEntity(entityData);
-
-            // Get detections for this entity
-            const detectionsResponse = await apiClient.getDetections({
-                entity_id: entityId,
-                limit: 100
-            }) as any;
-
-            setDetections(detectionsResponse.detections || []);
+            const [entityData, detectionsData] = await Promise.all([
+                apiClient.getEntity(id),
+                apiClient.getDetections({ entity_id: id, limit: 10 })
+            ]);
+            setEntity(entityData as Entity);
+            setDetections((detectionsData as any).detections || []);
         } catch (error) {
             console.error('Failed to load entity:', error);
         } finally {
@@ -40,134 +32,89 @@ export default function EntityDetailPage() {
         }
     };
 
+    const getSeverityColor = (severity: string) => {
+        const colors: Record<string, string> = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#3b82f6' };
+        return colors[severity] || colors.medium;
+    };
+
     if (loading) {
-        return <div className="p-8 text-white">Loading entity details...</div>;
+        return <div className="flex items-center justify-center h-[60vh] text-[#666]">Loading...</div>;
     }
 
     if (!entity) {
-        return <div className="p-8 text-white">Entity not found</div>;
+        return <div className="flex items-center justify-center h-[60vh] text-[#666]">Entity not found</div>;
     }
 
-    const getSeverityColor = (severity: string) => {
-        const colors = {
-            critical: 'text-red-400 bg-red-500/20',
-            high: 'text-orange-400 bg-orange-500/20',
-            medium: 'text-yellow-400 bg-yellow-500/20',
-            low: 'text-blue-400 bg-blue-500/20'
-        };
-        return colors[severity as keyof typeof colors] || colors.low;
-    };
+    const riskScore = entity.urgency_score || entity.threat_score || entity.risk_score || 0;
+    const urgencyLevel = entity.urgency_level || 'low';
 
     return (
         <div className="space-y-6">
+            {/* Back */}
+            <Link href="/entities" className="inline-flex items-center gap-2 text-sm text-[#666] hover:text-white transition-colors">
+                <ArrowLeft className="w-4 h-4" /> Back to Entities
+            </Link>
+
             {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                        Entity Investigation
-                    </h1>
-                    <p className="text-slate-400 mt-2">{entity.identifier}</p>
-                </div>
-
-                <div className={`px-4 py-2 rounded-lg font-semibold ${entity.urgency_level === 'critical' ? 'bg-red-500/20 text-red-400' :
-                        entity.urgency_level === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                            entity.urgency_level === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-blue-500/20 text-blue-400'
-                    }`}>
-                    {entity.urgency_level?.toUpperCase()} URGENCY
+            <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-6">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-white">{entity.identifier}</h1>
+                        <p className="text-[#666] text-sm mt-1">{entity.display_name || entity.entity_type || entity.type}</p>
+                    </div>
+                    <span className="text-xs font-medium px-3 py-1.5 rounded" style={{ backgroundColor: `${getSeverityColor(urgencyLevel)}20`, color: getSeverityColor(urgencyLevel) }}>
+                        {urgencyLevel.toUpperCase()} URGENCY
+                    </span>
                 </div>
             </div>
 
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                    <div className="flex items-center gap-3">
-                        <Shield className="w-8 h-8 text-red-400" />
-                        <div>
-                            <p className="text-sm text-slate-400">Risk Score</p>
-                            <p className="text-2xl font-bold text-white">{entity.threat_score}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                    <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-8 h-8 text-orange-400" />
-                        <div>
-                            <p className="text-sm text-slate-400">Total Detections</p>
-                            <p className="text-2xl font-bold text-white">{entity.total_detections || 0}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                    <div className="flex items-center gap-3">
-                        <Activity className="w-8 h-8 text-cyan-400" />
-                        <div>
-                            <p className="text-sm text-slate-400">Entity Type</p>
-                            <p className="text-lg font-semibold text-white capitalize">{entity.entity_type}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                    <div className="flex items-center gap-3">
-                        <Clock className="w-8 h-8 text-blue-400" />
-                        <div>
-                            <p className="text-sm text-slate-400">Last Seen</p>
-                            <p className="text-sm font-semibold text-white">
-                                {entity.last_seen ? new Date(entity.last_seen).toLocaleString() : 'N/A'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-4">
+                <StatCard icon={Target} label="Risk Score" value={riskScore} color={getSeverityColor(urgencyLevel)} />
+                <StatCard icon={AlertTriangle} label="Detections" value={entity.total_detections || detections.length} />
+                <StatCard icon={Clock} label="First Seen" value={new Date(entity.first_seen).toLocaleDateString()} />
+                <StatCard icon={Activity} label="Last Seen" value={new Date(entity.last_seen).toLocaleDateString()} />
             </div>
 
-            {/* Detections Table */}
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Detection History</h2>
-
+            {/* Detections */}
+            <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                <h3 className="text-sm font-medium text-white mb-4">Related Detections</h3>
                 {detections.length === 0 ? (
-                    <p className="text-slate-400">No detections found for this entity</p>
+                    <div className="text-center py-8">
+                        <Shield className="w-10 h-10 mx-auto mb-2 text-[#22c55e]/50" />
+                        <p className="text-sm text-[#666]">No detections for this entity</p>
+                    </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-slate-800">
-                                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Time</th>
-                                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Attack Type</th>
-                                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Description</th>
-                                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Severity</th>
-                                    <th className="text-left py-3 px-4 text-slate-400 font-medium">Risk Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {detections.map((detection) => (
-                                    <tr key={detection.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
-                                        <td className="py-3 px-4 text-sm text-slate-300">
-                                            {new Date(detection.detected_at).toLocaleString()}
-                                        </td>
-                                        <td className="py-3 px-4 text-sm font-medium text-white">
-                                            {detection.detection_type}
-                                        </td>
-                                        <td className="py-3 px-4 text-sm text-slate-400">
-                                            {detection.description?.substring(0, 80)}...
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getSeverityColor(detection.severity)}`}>
-                                                {detection.severity?.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 text-sm text-white font-semibold">
-                                            {detection.risk_score}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="space-y-2">
+                        {detections.map((det: any) => (
+                            <div key={det.id} className="flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a]">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getSeverityColor(det.severity) }}></div>
+                                    <div>
+                                        <p className="text-sm text-white">{det.detection_type || det.title}</p>
+                                        <p className="text-xs text-[#666]">{new Date(det.detected_at || det.timestamp).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${getSeverityColor(det.severity)}20`, color: getSeverityColor(det.severity) }}>
+                                    {det.severity?.toUpperCase()}
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+function StatCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: any; color?: string }) {
+    return (
+        <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-4">
+            <div className="flex items-center gap-2 mb-2">
+                <Icon className="w-4 h-4 text-[#666]" />
+                <span className="text-xs text-[#666]">{label}</span>
+            </div>
+            <p className="text-xl font-semibold" style={{ color: color || 'white' }}>{value}</p>
         </div>
     );
 }

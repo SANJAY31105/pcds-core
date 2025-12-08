@@ -260,9 +260,8 @@ export class PCDSClient {
         return this.request(`${API_V2_PREFIX}/mitre/stats/coverage`);
     }
 
-    // ============================================
-    // WebSocket Connection
-    // ============================================
+    private wsReconnectAttempts = 0;
+    private maxReconnectAttempts = 3;
 
     connectWebSocket(onMessage: (data: any) => void, onError?: (error: Event) => void) {
         if (this.ws) {
@@ -270,34 +269,45 @@ export class PCDSClient {
         }
 
         const wsURL = this.baseURL.replace('http://', 'ws://').replace('https://', 'wss://');
-        this.ws = new WebSocket(`${wsURL}/ws`);
 
-        this.ws.onopen = () => {
-            console.log('✅ WebSocket connected to PCDS Enterprise');
-        };
+        try {
+            this.ws = new WebSocket(`${wsURL}/ws`);
 
-        this.ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                onMessage(data);
-            } catch (error) {
-                console.error('WebSocket message parse error:', error);
-            }
-        };
+            this.ws.onopen = () => {
+                console.log('✅ WebSocket connected to PCDS Enterprise');
+                this.wsReconnectAttempts = 0; // Reset on successful connection
+            };
 
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            if (onError) onError(error);
-        };
+            this.ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    onMessage(data);
+                } catch (error) {
+                    console.error('WebSocket message parse error:', error);
+                }
+            };
 
-        this.ws.onclose = () => {
-            console.log('❌ WebSocket disconnected');
-            // Auto-reconnect after 5 seconds
-            setTimeout(() => {
-                console.log('🔄 Attempting WebSocket reconnection...');
-                this.connectWebSocket(onMessage, onError);
-            }, 5000);
-        };
+            this.ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                if (onError) onError(error);
+            };
+
+            this.ws.onclose = () => {
+                console.log('❌ WebSocket disconnected');
+                // Limited auto-reconnect (max 3 attempts)
+                if (this.wsReconnectAttempts < this.maxReconnectAttempts) {
+                    this.wsReconnectAttempts++;
+                    console.log(`🔄 Attempting WebSocket reconnection (${this.wsReconnectAttempts}/${this.maxReconnectAttempts})...`);
+                    setTimeout(() => {
+                        this.connectWebSocket(onMessage, onError);
+                    }, 5000);
+                } else {
+                    console.log('⚠️ Max WebSocket reconnection attempts reached. Use manual refresh.');
+                }
+            };
+        } catch (error) {
+            console.error('Failed to create WebSocket:', error);
+        }
 
         return this.ws;
     }

@@ -2,18 +2,25 @@
 
 export interface Entity {
     id: string;
-    entity_number: number;
-    type: 'host' | 'user' | 'service' | 'network';
+    entity_number?: number;
+    type?: 'host' | 'user' | 'service' | 'network';
+    entity_type?: string;  // From database schema
     identifier: string;
+    display_name?: string;
     first_seen: string;
     last_seen: string;
-    detections: Detection[];
-    total_detections?: number;  // Total count of detections
-    risk_score: number;
-    urgency_level: 'critical' | 'high' | 'medium' | 'low';
-    metadata: Record<string, any>;
-    baseline: Record<string, any>;
-    is_whitelisted: boolean;
+    detections?: Detection[];
+    total_detections?: number;
+    critical_detections?: number;
+    high_detections?: number;
+    risk_score?: number;
+    threat_score?: number;  // From database schema
+    urgency_score?: number;  // From database schema
+    urgency_level?: 'critical' | 'high' | 'medium' | 'low';
+    metadata?: Record<string, any>;
+    baseline?: Record<string, any>;
+    is_whitelisted?: boolean;
+    is_isolated?: boolean;
 }
 
 export interface Detection {

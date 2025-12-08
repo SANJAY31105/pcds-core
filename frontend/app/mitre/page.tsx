@@ -1,192 +1,207 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
-import { MITRETactic } from '@/types';
-import { Shield, Target, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, ExternalLink, Target, AlertTriangle } from 'lucide-react';
+
+interface Technique {
+    id: string;
+    name: string;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    detections: number;
+}
+
+interface Tactic {
+    id: string;
+    name: string;
+    description: string;
+    techniques: Technique[];
+}
 
 export default function MITREPage() {
-    const [tactics, setTactics] = useState<MITRETactic[]>([]);
-    const [heatmap, setHeatmap] = useState<Record<string, number>>({});
     const [selectedTactic, setSelectedTactic] = useState<string | null>(null);
-    const [techniques, setTechniques] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            const [tacticsData, heatmapData] = await Promise.all([
-                apiClient.getMITRETactics() as Promise<any>,
-                apiClient.getMITREHeatmap() as Promise<any>
-            ]);
-            setTactics(tacticsData.tactics || []);
-            setHeatmap(heatmapData.heatmap || {});
-        } catch (error) {
-            console.error('Failed to load MITRE data:', error);
-        } finally {
-            setLoading(false);
+    const tactics: Tactic[] = [
+        {
+            id: 'TA0001', name: 'Initial Access', description: 'Techniques to gain initial foothold', techniques: [
+                { id: 'T1566', name: 'Phishing', severity: 'high', detections: 12 },
+                { id: 'T1190', name: 'Exploit Public-Facing Application', severity: 'critical', detections: 3 },
+                { id: 'T1078', name: 'Valid Accounts', severity: 'high', detections: 8 }
+            ]
+        },
+        {
+            id: 'TA0002', name: 'Execution', description: 'Techniques to run malicious code', techniques: [
+                { id: 'T1059', name: 'Command and Scripting Interpreter', severity: 'high', detections: 15 },
+                { id: 'T1204', name: 'User Execution', severity: 'medium', detections: 6 },
+                { id: 'T1203', name: 'Exploitation for Client Execution', severity: 'critical', detections: 2 }
+            ]
+        },
+        {
+            id: 'TA0003', name: 'Persistence', description: 'Techniques to maintain access', techniques: [
+                { id: 'T1547', name: 'Boot or Logon Autostart Execution', severity: 'medium', detections: 4 },
+                { id: 'T1053', name: 'Scheduled Task/Job', severity: 'medium', detections: 7 },
+                { id: 'T1136', name: 'Create Account', severity: 'high', detections: 2 }
+            ]
+        },
+        {
+            id: 'TA0004', name: 'Privilege Escalation', description: 'Techniques to gain higher permissions', techniques: [
+                { id: 'T1548', name: 'Abuse Elevation Control Mechanism', severity: 'critical', detections: 5 },
+                { id: 'T1068', name: 'Exploitation for Privilege Escalation', severity: 'critical', detections: 1 }
+            ]
+        },
+        {
+            id: 'TA0005', name: 'Defense Evasion', description: 'Techniques to avoid detection', techniques: [
+                { id: 'T1070', name: 'Indicator Removal', severity: 'high', detections: 9 },
+                { id: 'T1036', name: 'Masquerading', severity: 'medium', detections: 11 },
+                { id: 'T1027', name: 'Obfuscated Files or Information', severity: 'medium', detections: 8 }
+            ]
+        },
+        {
+            id: 'TA0006', name: 'Credential Access', description: 'Techniques to steal credentials', techniques: [
+                { id: 'T1003', name: 'OS Credential Dumping', severity: 'critical', detections: 4 },
+                { id: 'T1110', name: 'Brute Force', severity: 'high', detections: 18 },
+                { id: 'T1558', name: 'Steal or Forge Kerberos Tickets', severity: 'critical', detections: 2 }
+            ]
+        },
+        {
+            id: 'TA0007', name: 'Discovery', description: 'Techniques to explore environment', techniques: [
+                { id: 'T1087', name: 'Account Discovery', severity: 'low', detections: 22 },
+                { id: 'T1083', name: 'File and Directory Discovery', severity: 'low', detections: 14 }
+            ]
+        },
+        {
+            id: 'TA0008', name: 'Lateral Movement', description: 'Techniques to move through network', techniques: [
+                { id: 'T1021', name: 'Remote Services', severity: 'high', detections: 10 },
+                { id: 'T1550', name: 'Use Alternate Authentication Material', severity: 'critical', detections: 3 }
+            ]
+        },
+        {
+            id: 'TA0011', name: 'Command and Control', description: 'Techniques for C2 communication', techniques: [
+                { id: 'T1071', name: 'Application Layer Protocol', severity: 'high', detections: 7 },
+                { id: 'T1573', name: 'Encrypted Channel', severity: 'medium', detections: 12 },
+                { id: 'T1572', name: 'Protocol Tunneling', severity: 'critical', detections: 2 }
+            ]
+        },
+        {
+            id: 'TA0010', name: 'Exfiltration', description: 'Techniques to steal data', techniques: [
+                { id: 'T1041', name: 'Exfiltration Over C2 Channel', severity: 'critical', detections: 4 },
+                { id: 'T1567', name: 'Exfiltration Over Web Service', severity: 'high', detections: 6 }
+            ]
+        },
+        {
+            id: 'TA0040', name: 'Impact', description: 'Techniques to disrupt systems', techniques: [
+                { id: 'T1486', name: 'Data Encrypted for Impact', severity: 'critical', detections: 2 },
+                { id: 'T1489', name: 'Service Stop', severity: 'high', detections: 3 }
+            ]
         }
-    };
+    ];
 
-    const loadTechniques = async (tacticId: string) => {
-        setSelectedTactic(tacticId);
-        try {
-            const data = await apiClient.getMITRETechnique(tacticId) as any;
-            setTechniques(data.techniques || []);
-        } catch (error) {
-            console.error('Failed to load techniques:', error);
-        }
-    };
+    const totalDetections = tactics.reduce((sum, t) => sum + t.techniques.reduce((s, tech) => s + tech.detections, 0), 0);
+    const criticalCount = tactics.flatMap(t => t.techniques).filter(t => t.severity === 'critical').length;
+    const selectedTacticData = tactics.find(t => t.id === selectedTactic);
 
-    const getHeatmapIntensity = (techniqueId: string) => {
-        const count = heatmap[techniqueId] || 0;
-        if (count === 0) return 'bg-slate-800/50';
-        if (count <= 2) return 'bg-blue-500/30';
-        if (count <= 5) return 'bg-yellow-500/40';
-        if (count <= 10) return 'bg-orange-500/50';
-        return 'bg-red-500/60';
-    };
-
-    const getTacticColor = (tacticId: string) => {
-        const colors: Record<string, string> = {
-            'TA0001': 'from-purple-500 to-pink-500',
-            'TA0002': 'from-blue-500 to-cyan-500',
-            'TA0003': 'from-green-500 to-emerald-500',
-            'TA0004': 'from-yellow-500 to-orange-500',
-            'TA0005': 'from-red-500 to-rose-500',
-            'TA0006': 'from-pink-500 to-fuchsia-500',
-            'TA0007': 'from-cyan-500 to-blue-500',
-            'TA0008': 'from-orange-500 to-amber-500',
-            'TA0009': 'from-teal-500 to-cyan-500',
-            'TA0010': 'from-indigo-500 to-purple-500',
-            'TA0011': 'from-rose-500 to-red-500',
-            'TA0040': 'from-red-600 to-orange-600',
-        };
-        return colors[tacticId] || 'from-slate-500 to-slate-600';
+    const getSeverityColor = (severity: string) => {
+        const colors: Record<string, string> = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#3b82f6' };
+        return colors[severity] || '#666';
     };
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                    MITRE ATT&CK Matrix
-                </h1>
-                <p className="text-slate-400 mt-1">
-                    Adversary tactics and techniques mapped to detected threats
-                </p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-semibold text-white">MITRE ATT&CK Coverage</h1>
+                    <p className="text-[#666] mt-1">Enterprise tactics and techniques mapped to detections</p>
+                </div>
+                <div className="flex gap-6">
+                    <div className="text-center px-6 py-3 bg-[#141414] rounded-xl border border-[#2a2a2a]">
+                        <p className="text-3xl font-bold text-white">{totalDetections}</p>
+                        <p className="text-sm text-[#666]">Total Detections</p>
+                    </div>
+                    <div className="text-center px-6 py-3 bg-[#141414] rounded-xl border border-[#ef4444]/30">
+                        <p className="text-3xl font-bold text-[#ef4444]">{criticalCount}</p>
+                        <p className="text-sm text-[#666]">Critical Techniques</p>
+                    </div>
+                </div>
             </div>
 
             {/* Tactics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {tactics.map((tactic) => {
-                    const detectionCount = (tactic.techniques || []).reduce((sum, tid) => sum + (heatmap[tid] || 0), 0);
+                    const tacticDetections = tactic.techniques.reduce((s, t) => s + t.detections, 0);
+                    const hasCritical = tactic.techniques.some(t => t.severity === 'critical');
+                    const isSelected = selectedTactic === tactic.id;
 
                     return (
-                        <div
+                        <button
                             key={tactic.id}
-                            onClick={() => loadTechniques(tactic.id)}
-                            className={`
-                                cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105
-                                ${selectedTactic === tactic.id
-                                    ? `bg-gradient-to-br ${getTacticColor(tactic.id)}/20 border-${getTacticColor(tactic.id).split('-')[1]}-500/50 shadow-2xl`
-                                    : 'bg-slate-800/50 border-slate-700 hover:border-cyan-500/50'
-                                }
-                            `}
+                            onClick={() => setSelectedTactic(isSelected ? null : tactic.id)}
+                            className={`p-5 rounded-xl border text-left transition-all ${isSelected
+                                    ? 'bg-[#10a37f]/10 border-[#10a37f]'
+                                    : 'bg-[#141414] border-[#2a2a2a] hover:border-[#444]'
+                                }`}
                         >
-                            <div className="flex items-start justify-between mb-3">
-                                <Shield className={`w-8 h-8 ${selectedTactic === tactic.id ? 'text-white' : 'text-cyan-400'}`} />
-                                <span className="px-2 py-1 text-xs font-mono bg-slate-900/50 text-cyan-400 rounded border border-cyan-500/30">
-                                    {tactic.id}
-                                </span>
-                            </div>
-                            <h3 className="text-lg font-bold text-white mb-2">{tactic.name}</h3>
-                            <p className="text-sm text-slate-400 mb-3 line-clamp-2">{tactic.description}</p>
+                            <p className="text-xs text-[#10a37f] font-mono mb-2">{tactic.id}</p>
+                            <h3 className="text-base font-medium text-white mb-1">{tactic.name}</h3>
+                            <p className="text-xs text-[#666] mb-4">{tactic.description}</p>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-slate-500">
-                                    {tactic.techniques?.length || 0} techniques
+                                <span className="text-sm text-[#a1a1a1]">{tactic.techniques.length} techniques</span>
+                                <span className={`text-lg font-bold ${hasCritical ? 'text-[#ef4444]' : 'text-white'}`}>
+                                    {tacticDetections}
                                 </span>
-                                {detectionCount > 0 && (
-                                    <span className="px-2 py-1 text-xs font-bold bg-red-500/20 text-red-400 rounded-full border border-red-500/50">
-                                        {detectionCount} detections
-                                    </span>
-                                )}
                             </div>
-                        </div>
+                        </button>
                     );
                 })}
             </div>
 
-            {/* Techniques List */}
-            {selectedTactic && techniques.length > 0 && (
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl border border-cyan-500/20 shadow-2xl p-6">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        Techniques for {tactics.find(t => t.id === selectedTactic)?.name}
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {techniques.map((technique) => {
-                            const detectionCount = heatmap[technique.id] || 0;
-
-                            return (
-                                <div
-                                    key={technique.id}
-                                    className={`
-                                        p-4 rounded-lg border transition-all
-                                        ${detectionCount > 0
-                                            ? `${getHeatmapIntensity(technique.id)} border-red-500/50 shadow-lg`
-                                            : 'bg-slate-800/30 border-slate-700'
-                                        }
-                                    `}
-                                >
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex-1">
-                                            <div className="flex items-center space-x-2 mb-1">
-                                                <span className="px-2 py-0.5 text-xs font-mono bg-slate-900/50 text-cyan-400 rounded">
-                                                    {technique.id}
-                                                </span>
-                                                <h4 className="font-medium text-white">{technique.name}</h4>
-                                            </div>
-                                            <p className="text-sm text-slate-400">{technique.description}</p>
-                                        </div>
-                                        {detectionCount > 0 && (
-                                            <span className="ml-4 px-3 py-1 text-sm font-bold bg-red-500/30 text-red-400 rounded-full border border-red-500/50 whitespace-nowrap">
-                                                {detectionCount}×
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center space-x-2 mt-3">
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${technique.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                                            technique.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                                                technique.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                    'bg-blue-500/20 text-blue-400'
-                                            }`}>
-                                            {technique.severity}
-                                        </span>
-                                    </div>
+            {/* Selected Tactic Details */}
+            {selectedTacticData && (
+                <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-[#2a2a2a] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Target className="w-5 h-5 text-[#10a37f]" />
+                            <span className="text-lg font-medium text-white">{selectedTacticData.name} - Techniques</span>
+                        </div>
+                        <a
+                            href={`https://attack.mitre.org/tactics/${selectedTacticData.id}/`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#10a37f] hover:underline flex items-center gap-1"
+                        >
+                            View on MITRE <ExternalLink className="w-4 h-4" />
+                        </a>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                        {selectedTacticData.techniques.map((technique) => (
+                            <div
+                                key={technique.id}
+                                className="p-4 rounded-xl bg-[#0a0a0a] border border-[#2a2a2a] hover:border-[#333] transition-colors"
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <span className="text-xs font-mono text-[#10a37f]">{technique.id}</span>
+                                    <span
+                                        className="text-xs font-medium px-2 py-1 rounded"
+                                        style={{ backgroundColor: `${getSeverityColor(technique.severity)}20`, color: getSeverityColor(technique.severity) }}
+                                    >
+                                        {technique.severity.toUpperCase()}
+                                    </span>
                                 </div>
-                            );
-                        })}
+                                <h4 className="text-sm font-medium text-white mb-3">{technique.name}</h4>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-[#666]">Detections</span>
+                                    <span className="text-xl font-bold text-white">{technique.detections}</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {/* Info Card */}
+            {/* Info when nothing selected */}
             {!selectedTactic && (
-                <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-xl border border-cyan-500/30 p-6">
-                    <div className="flex items-start space-x-4">
-                        <Info className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-1" />
-                        <div>
-                            <h3 className="text-lg font-bold text-white mb-2">About MITRE ATT&CK</h3>
-                            <p className="text-slate-300 text-sm leading-relaxed">
-                                The MITRE ATT&CK framework is a globally-accessible knowledge base of adversary tactics and techniques
-                                based on real-world observations. Click on any tactic above to view techniques and see which ones
-                                have been detected in your environment (highlighted in red).
-                            </p>
-                        </div>
-                    </div>
+                <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-8 text-center">
+                    <Shield className="w-12 h-12 mx-auto mb-3 text-[#333]" />
+                    <p className="text-[#666]">Click on a tactic above to view its techniques and detection coverage</p>
                 </div>
             )}
         </div>

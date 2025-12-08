@@ -22,10 +22,6 @@ export default function RootLayout({
             <body className={`${inter.className} bg-slate-950 text-slate-100`}>
                 <ThemeProvider>
                     <ToastProvider>
-                        {/* Theme Toggle Button - Fixed Position */}
-                        <div className="fixed top-4 right-4 z-50">
-                            <ThemeToggle />
-                        </div>
                         {children}
                     </ToastProvider>
                 </ThemeProvider>

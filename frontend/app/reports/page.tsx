@@ -1,412 +1,206 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiClient } from '@/lib/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { useState } from 'react';
+import { Download, Printer, FileText, TrendingUp, Shield, Clock } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 export default function ReportsPage() {
-    const [execSummary, setExecSummary] = useState<any>(null);
-    const [threatIntel, setThreatIntel] = useState<any>(null);
-    const [complianceData, setComplianceData] = useState<any>(null);
-    const [trendData, setTrendData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [selectedFramework, setSelectedFramework] = useState('nist');
-    const [trendDays, setTrendDays] = useState(30);
+    const [activeTab, setActiveTab] = useState('executive');
 
-    const fetchComplianceData = async (framework: string) => {
-        try {
-            const data = await apiClient.get(`/api/v2/reports/compliance-report?framework=${framework}`);
-            setComplianceData(data);
-        } catch (error) {
-            console.error("Failed to fetch compliance data:", error);
+    const mockData = {
+        kpis: { risk: 72, critical: 8, mttd: 4.2, blocked: 156 },
+        trend: [
+            { day: 'Mon', detections: 12, blocked: 10 },
+            { day: 'Tue', detections: 18, blocked: 16 },
+            { day: 'Wed', detections: 8, blocked: 8 },
+            { day: 'Thu', detections: 24, blocked: 22 },
+            { day: 'Fri', detections: 15, blocked: 14 },
+            { day: 'Sat', detections: 6, blocked: 6 },
+            { day: 'Sun', detections: 4, blocked: 4 }
+        ],
+        severity: [
+            { name: 'Critical', value: 8, color: '#ef4444' },
+            { name: 'High', value: 24, color: '#f97316' },
+            { name: 'Medium', value: 67, color: '#eab308' },
+            { name: 'Low', value: 45, color: '#3b82f6' }
+        ],
+        compliance: {
+            score: 87, categories: [
+                { name: 'Identify', score: 92 },
+                { name: 'Protect', score: 85 },
+                { name: 'Detect', score: 95 },
+                { name: 'Respond', score: 78 },
+                { name: 'Recover', score: 82 }
+            ]
         }
     };
 
-    const fetchTrendData = async (days: number) => {
-        setTrendDays(days);
-        try {
-            const data = await apiClient.get(`/api/v2/reports/trend-analysis?days=${days}`);
-            setTrendData(data);
-        } catch (error) {
-            console.error("Failed to fetch trend data:", error);
-        }
-    };
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch each endpoint separately with error handling
-                try {
-                    const summary = await apiClient.get('/api/v2/reports/executive-summary');
-                    setExecSummary(summary);
-                } catch (e) {
-                    console.error("Failed to fetch executive summary:", e);
-                }
-
-                try {
-                    const intel = await apiClient.get('/api/v2/reports/threat-intelligence');
-                    setThreatIntel(intel);
-                } catch (e) {
-                    console.error("Failed to fetch threat intelligence:", e);
-                }
-
-                try {
-                    const compliance = await apiClient.get('/api/v2/reports/compliance-report?framework=nist');
-                    setComplianceData(compliance);
-                } catch (e) {
-                    console.error("Failed to fetch compliance:", e);
-                }
-
-                try {
-                    const trends = await apiClient.get('/api/v2/reports/trend-analysis?days=30');
-                    setTrendData(trends);
-                } catch (e) {
-                    console.error("Failed to fetch trends:", e);
-                }
-            } catch (error) {
-                console.error("Failed to fetch reports:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    if (loading) return <div className="p-8 text-white">Generating Reports...</div>;
-
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#FF0000'];
-
+    const tabs = [
+        { id: 'executive', label: 'Executive Summary' },
+        { id: 'threats', label: 'Threat Analysis' },
+        { id: 'compliance', label: 'Compliance' },
+        { id: 'trends', label: 'Trends' }
+    ];
 
     return (
-        <div className="p-8 space-y-8 bg-slate-950 min-h-screen text-slate-100">
-            <div className="flex justify-between items-center">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                        Security Reports
-                    </h1>
-                    <p className="text-slate-400">Generated at: {new Date().toLocaleString()}</p>
+                    <h1 className="text-2xl font-semibold text-white">Reports</h1>
+                    <p className="text-[#666] text-sm mt-1">Generated {new Date().toLocaleDateString()}</p>
                 </div>
-                <button
-                    onClick={() => window.print()}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                >
-                    Print / Export PDF
-                </button>
+                <div className="flex gap-2">
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#141414] border border-[#2a2a2a] text-sm text-[#a1a1a1] hover:text-white transition-colors">
+                        <Printer className="w-4 h-4" /> Print
+                    </button>
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#10a37f] text-white text-sm font-medium hover:bg-[#0d8a6a] transition-colors">
+                        <Download className="w-4 h-4" /> Export PDF
+                    </button>
+                </div>
             </div>
 
+            {/* Tabs */}
+            <div className="flex gap-1 p-1 bg-[#141414] rounded-lg border border-[#2a2a2a]">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
+                            ? 'bg-[#1a1a1a] text-white'
+                            : 'text-[#666] hover:text-[#a1a1a1]'
+                            }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
 
-            <Tabs defaultValue="executive" className="space-y-4">
-                <TabsList className="bg-slate-900 border border-slate-800">
-                    <TabsTrigger value="executive">Executive Summary</TabsTrigger>
-                    <TabsTrigger value="threat-intel">Threat Intelligence</TabsTrigger>
-                    <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                    <TabsTrigger value="trends">Trend Analysis</TabsTrigger>
-                    <TabsTrigger value="custom">Custom Builder</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="executive" className="space-y-6">
+            {/* Executive Tab */}
+            {activeTab === 'executive' && (
+                <div className="space-y-6">
                     {/* KPIs */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <KpiCard title="Overall Risk Score" value={execSummary?.kpis?.overall_risk_score ?? 'N/A'} color="text-red-400" />
-                        <KpiCard title="Critical Incidents (24h)" value={execSummary?.kpis?.critical_incidents ?? 0} color="text-orange-400" />
-                        <KpiCard title="MTTD (Mean Time to Detect" value={execSummary?.kpis?.mttd_minutes ? `${execSummary.kpis.mttd_minutes} min` : 'N/A'} color="text-blue-400" />
-                        <KpiCard title="Active Entities" value={execSummary?.kpis?.active_entities ?? 0} color="text-green-400" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <KPICard label="Risk Score" value={mockData.kpis.risk} suffix="/100" />
+                        <KPICard label="Critical Alerts" value={mockData.kpis.critical} variant="critical" />
+                        <KPICard label="MTTD" value={mockData.kpis.mttd} suffix=" min" />
+                        <KPICard label="Blocked" value={mockData.kpis.blocked} />
                     </div>
 
-                    {/* Top Risky Entities Table */}
-                    <Card className="bg-slate-900 border-slate-800">
-                        <CardHeader>
-                            <CardTitle>Top Risky Entities</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {execSummary?.top_risky_entities && execSummary.top_risky_entities.length > 0 ? (
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="border-b border-slate-800 text-slate-400">
-                                            <th className="p-2">Entity</th>
-                                            <th className="p-2">Threat Score</th>
-                                            <th className="p-2">Urgency</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {execSummary.top_risky_entities.map((e: any, i: number) => (
-                                            <tr key={i} className="border-b border-slate-800/50">
-                                                <td className="p-2 font-mono text-blue-300">{e.identifier}</td>
-                                                <td className="p-2 text-red-400 font-bold">{e.threat_score}</td>
-                                                <td className="p-2 capitalize">{e.urgency_level}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <div className="text-center py-8 text-slate-400">
-                                    <p>No risky entities detected</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Recommendations */}
-                    <Card className="bg-slate-900 border-slate-800">
-                        <CardHeader>
-                            <CardTitle>AI Recommendations</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {execSummary?.recommendations && execSummary.recommendations.length > 0 ? (
-                                <ul className="list-disc pl-5 space-y-2 text-slate-300">
-                                    {execSummary.recommendations.map((rec: string, i: number) => (
-                                        <li key={i}>{rec}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div className="text-center py-8 text-slate-400">
-                                    <p>No recommendations available</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="threat-intel" className="space-y-6">
+                    {/* Charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Top Tactics Chart */}
-                        <Card className="bg-slate-900 border-slate-800">
-                            <CardHeader>
-                                <CardTitle>Top Attack Tactics (Last 7 Days)</CardTitle>
-                            </CardHeader>
-                            <CardContent className="h-[300px]">
-                                {threatIntel?.top_tactics && threatIntel.top_tactics.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={threatIntel.top_tactics}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                            <XAxis dataKey="name" stroke="#94a3b8" />
-                                            <YAxis stroke="#94a3b8" />
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
-                                            <Bar dataKey="count" fill="#3b82f6" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-slate-400">
-                                        <p>No tactic data available</p>
+                        <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                            <h3 className="text-sm font-medium text-white mb-4">Severity Distribution</h3>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={mockData.severity} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2}>
+                                            {mockData.severity.map((entry, i) => (
+                                                <Cell key={i} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="flex justify-center gap-4 mt-2">
+                                {mockData.severity.map((s, i) => (
+                                    <div key={i} className="flex items-center gap-1.5">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }}></div>
+                                        <span className="text-xs text-[#666]">{s.name}</span>
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Top Techniques Chart */}
-                        <Card className="bg-slate-900 border-slate-800">
-                            <CardHeader>
-                                <CardTitle>Top Techniques</CardTitle>
-                            </CardHeader>
-                            <CardContent className="h-[300px]">
-                                {threatIntel?.top_techniques && threatIntel.top_techniques.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={threatIntel.top_techniques}
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius={100}
-                                                fill="#8884d8"
-                                                dataKey="count"
-                                                nameKey="name"
-                                                label
-                                            >
-                                                {threatIntel.top_techniques.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-slate-400">
-                                        <p>No technique data available</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="compliance" className="space-y-6">
-                    {complianceData && (
-                        <>
-                            {/* Framework Selector */}
-                            <div className="flex gap-4">
-                                <select
-                                    value={selectedFramework}
-                                    onChange={(e) => {
-                                        setSelectedFramework(e.target.value);
-                                        fetchComplianceData(e.target.value);
-                                    }}
-                                    className="px-4 py-2 bg-slate-800 border border-slate-700 rounded text-white"
-                                >
-                                    <option value="nist">NIST Cybersecurity Framework</option>
-                                    <option value="iso27001">ISO/IEC 27001</option>
-                                    <option value="pci-dss">PCI-DSS v4.0</option>
-                                </select>
-                            </div>
-
-                            {/* Overall Score */}
-                            <Card className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-blue-500/30">
-                                <CardContent className="p-6 text-center">
-                                    <p className="text-slate-300 text-sm mb-2">Overall Compliance Score</p>
-                                    <p className="text-6xl font-bold text-blue-400">{complianceData.overall_score}%</p>
-                                    <p className="text-slate-400 text-sm mt-2">{complianceData.framework.name}</p>
-                                </CardContent>
-                            </Card>
-
-                            {/* Category Breakdown */}
-                            <Card className="bg-slate-900 border-slate-800">
-                                <CardHeader>
-                                    <CardTitle>Compliance Categories</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {complianceData.framework.categories.map((cat: any, i: number) => (
-                                        <div key={i}>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-slate-300">{cat.name}</span>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="font-bold text-white">{cat.score}%</span>
-                                                    <span className={`px-2 py-1 text-xs rounded ${cat.status === 'compliant' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'
-                                                        }`}>
-                                                        {cat.status.replace('_', ' ').toUpperCase()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="mt-2 h-2 bg-slate-700 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500" style={{ width: `${cat.score}%` }}></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
-
-                            {/* Metrics */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <KpiCard title="Detection Coverage" value={`${complianceData.metrics.detection_coverage}%`} color="text-blue-400" />
-                                <KpiCard title="Total Incidents" value={complianceData.metrics.total_incidents} color="text-orange-400" />
-                                <KpiCard title="Resolved" value={complianceData.metrics.resolved_incidents} color="text-green-400" />
-                                <KpiCard title="Audit Entries" value={complianceData.metrics.audit_log_entries} color="text-purple-400" />
-                            </div>
-                        </>
-                    )}
-                </TabsContent>
-
-                <TabsContent value="trends" className="space-y-6">
-                    {trendData && (
-                        <>
-                            {/* Time Range Selector */}
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={() => fetchTrendData(7)}
-                                    className={`px-4 py-2 rounded ${trendDays === 7 ? 'bg-blue-600' : 'bg-slate-800'}`}
-                                >
-                                    7 Days
-                                </button>
-                                <button
-                                    onClick={() => fetchTrendData(30)}
-                                    className={`px-4 py-2 rounded ${trendDays === 30 ? 'bg-blue-600' : 'bg-slate-800'}`}
-                                >
-                                    30 Days
-                                </button>
-                                <button
-                                    onClick={() => fetchTrendData(90)}
-                                    className={`px-4 py-2 rounded ${trendDays === 90 ? 'bg-blue-600' : 'bg-slate-800'}`}
-                                >
-                                    90 Days
-                                </button>
-                            </div>
-
-                            {/* Detection Trend Chart */}
-                            <Card className="bg-slate-900 border-slate-800">
-                                <CardHeader>
-                                    <CardTitle>Detection Trend Over Time</CardTitle>
-                                </CardHeader>
-                                <CardContent className="h-[300px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={trendData.detection_trend}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                            <XAxis dataKey="date" stroke="#94a3b8" />
-                                            <YAxis stroke="#94a3b8" />
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
-                                            <Legend />
-                                            <Bar dataKey="total" fill="#3b82f6" name="Total" />
-                                            <Bar dataKey="critical" fill="#ef4444" name="Critical" />
-                                            <Bar dataKey="high" fill="#f59e0b" name="High" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-
-                            {/* Risk Trend Chart */}
-                            <Card className="bg-slate-900 border-slate-800">
-                                <CardHeader>
-                                    <CardTitle>Entity Risk Trend</CardTitle>
-                                </CardHeader>
-                                <CardContent className="h-[300px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={trendData.risk_trend}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                            <XAxis dataKey="date" stroke="#94a3b8" />
-                                            <YAxis stroke="#94a3b8" />
-                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155' }} />
-                                            <Legend />
-                                            <Line type="monotone" dataKey="avg_risk" stroke="#3b82f6" name="Avg Risk" />
-                                            <Line type="monotone" dataKey="max_risk" stroke="#ef4444" name="Max Risk" />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                        </>
-                    )}
-                </TabsContent>
-
-                <TabsContent value="custom" className="space-y-6">
-                    <Card className="bg-slate-900 border-slate-800">
-                        <CardHeader>
-                            <CardTitle>Custom Report Builder</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <p className="text-slate-400">Select the sections to include in your custom report:</p>
-
-                            <div className="space-y-2">
-                                {['Executive Summary', 'Threat Intelligence', 'Compliance Report', 'Trend Analysis', 'Top Entities', 'Recent Detections'].map((section) => (
-                                    <label key={section} className="flex items-center space-x-3 p-3 bg-slate-800/40 rounded cursor-pointer hover:bg-slate-800">
-                                        <input
-                                            type="checkbox"
-                                            defaultChecked
-                                            className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500"
-                                        />
-                                        <span className="text-slate-300">{section}</span>
-                                    </label>
                                 ))}
                             </div>
+                        </div>
 
-                            <button
-                                onClick={() => window.print()}
-                                className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all"
-                            >
-                                Generate & Export Custom Report
-                            </button>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                        <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                            <h3 className="text-sm font-medium text-white mb-4">Weekly Trend</h3>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={mockData.trend}>
+                                        <XAxis dataKey="day" stroke="#666" fontSize={12} />
+                                        <YAxis stroke="#666" fontSize={12} />
+                                        <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px' }} />
+                                        <Area type="monotone" dataKey="detections" stroke="#10a37f" fill="#10a37f" fillOpacity={0.2} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Compliance Tab */}
+            {activeTab === 'compliance' && (
+                <div className="space-y-6">
+                    <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-8 text-center">
+                        <p className="text-xs text-[#666] uppercase tracking-wider">NIST Cybersecurity Framework</p>
+                        <p className="text-6xl font-semibold text-[#10a37f] mt-2">{mockData.compliance.score}%</p>
+                        <p className="text-sm text-[#666] mt-1">Overall Compliance</p>
+                    </div>
+
+                    <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                        <h3 className="text-sm font-medium text-white mb-4">Categories</h3>
+                        <div className="space-y-4">
+                            {mockData.compliance.categories.map((cat, i) => (
+                                <div key={i}>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="text-[#a1a1a1]">{cat.name}</span>
+                                        <span className="text-white font-medium">{cat.score}%</span>
+                                    </div>
+                                    <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#10a37f] rounded-full" style={{ width: `${cat.score}%` }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Trends Tab */}
+            {activeTab === 'trends' && (
+                <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                    <h3 className="text-sm font-medium text-white mb-4">Detection Trend</h3>
+                    <div className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={mockData.trend}>
+                                <XAxis dataKey="day" stroke="#666" fontSize={12} />
+                                <YAxis stroke="#666" fontSize={12} />
+                                <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px' }} />
+                                <Bar dataKey="detections" fill="#10a37f" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="blocked" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
+
+            {/* Threats Tab */}
+            {activeTab === 'threats' && (
+                <div className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-5">
+                    <h3 className="text-sm font-medium text-white mb-4">Top Threat Types</h3>
+                    <div className="space-y-3">
+                        {['Phishing', 'Ransomware', 'Lateral Movement', 'C2 Communication', 'Data Exfil'].map((threat, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a]">
+                                <span className="text-sm text-white">{threat}</span>
+                                <span className="text-sm text-[#a1a1a1]">{Math.floor(Math.random() * 20) + 5} detections</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-function KpiCard({ title, value, color }: { title: string, value: string | number, color: string }) {
+function KPICard({ label, value, suffix = '', variant }: { label: string; value: number; suffix?: string; variant?: 'critical' }) {
     return (
-        <Card className="bg-slate-900 border-slate-800">
-            <CardContent className="p-6">
-                <p className="text-slate-400 text-sm font-medium uppercase">{title}</p>
-                <p className={`text-4xl font-bold mt-2 ${color}`}>{value}</p>
-            </CardContent>
-        </Card>
+        <div className={`bg-[#141414] rounded-xl border p-5 ${variant === 'critical' && value > 0 ? 'border-[#ef4444]/30' : 'border-[#2a2a2a]'}`}>
+            <p className={`text-3xl font-semibold ${variant === 'critical' && value > 0 ? 'text-[#ef4444]' : 'text-white'}`}>
+                {value}{suffix && <span className="text-lg text-[#666]">{suffix}</span>}
+            </p>
+            <p className="text-sm text-[#666] mt-1">{label}</p>
+        </div>
     );
 }
