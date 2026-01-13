@@ -91,26 +91,148 @@ export default function LiveFeedPage() {
         }
     };
 
-    // Simulated events for demo mode
+    // Simulated events for demo mode - HIGH IMPACT EVENTS FOR JUDGES
     useEffect(() => {
         if (realMode) return;
 
+        // Generate timestamps in the last 30 seconds for realistic feel
+        const now = new Date();
+        const timeAgo = (seconds: number) => new Date(now.getTime() - seconds * 1000).toISOString();
+
         const initialEvents: LiveEvent[] = [
-            { id: '1', type: 'system', message: 'PCDS Enterprise initialized - All systems operational', timestamp: new Date().toISOString(), source: 'System' },
-            { id: '2', type: 'system', message: 'ML anomaly detection models loaded successfully', timestamp: new Date().toISOString(), source: 'ML Engine' },
-            { id: '3', type: 'detection', message: 'Network baseline established - monitoring 156 endpoints', severity: 'low', timestamp: new Date().toISOString(), source: 'Network Monitor' }
+            {
+                id: '1',
+                type: 'system',
+                message: 'PCDS Enterprise initialized - All ML models loaded successfully',
+                timestamp: timeAgo(30),
+                source: 'System'
+            },
+            {
+                id: '2',
+                type: 'detection',
+                message: '🔴 CRITICAL: Phishing email opened by user@company.com - Malicious payload detected',
+                severity: 'critical',
+                timestamp: timeAgo(25),
+                source: 'Email Gateway',
+                mitre: { technique_id: 'T1566', technique_name: 'Phishing' }
+            },
+            {
+                id: '3',
+                type: 'action',
+                message: '✅ AUTO-RESPONSE: Email quarantined, user session flagged for monitoring',
+                timestamp: timeAgo(24),
+                source: 'SOAR Engine'
+            },
+            {
+                id: '4',
+                type: 'detection',
+                message: '⚠️ C2 Beacon detected: 185.174.xxx.xxx:443 - Cobalt Strike signature match',
+                severity: 'critical',
+                timestamp: timeAgo(18),
+                source: 'Network Monitor',
+                mitre: { technique_id: 'T1071', technique_name: 'Application Layer Protocol' }
+            },
+            {
+                id: '5',
+                type: 'detection',
+                message: '🔴 Privilege Escalation attempt: Process trying to elevate to SYSTEM on host-042',
+                severity: 'high',
+                timestamp: timeAgo(12),
+                source: 'EDR Agent',
+                mitre: { technique_id: 'T1548', technique_name: 'Abuse Elevation Control' }
+            },
+            {
+                id: '6',
+                type: 'action',
+                message: '✅ AUTO-RESPONSE: Host-042 network isolated pending investigation',
+                timestamp: timeAgo(11),
+                source: 'SOAR Engine'
+            },
+            {
+                id: '7',
+                type: 'detection',
+                message: '⚠️ Lateral Movement: RDP connection from host-042 to DC-01 (suspicious after priv-esc)',
+                severity: 'high',
+                timestamp: timeAgo(8),
+                source: 'Network Monitor',
+                mitre: { technique_id: 'T1021', technique_name: 'Remote Services' }
+            },
+            {
+                id: '8',
+                type: 'detection',
+                message: '🔴 RANSOMWARE BEHAVIOR: Mass file encryption detected on host-042 - 847 files affected',
+                severity: 'critical',
+                timestamp: timeAgo(5),
+                source: 'Behavioral Analytics',
+                mitre: { technique_id: 'T1486', technique_name: 'Data Encrypted for Impact' }
+            },
+            {
+                id: '9',
+                type: 'action',
+                message: '✅ AUTO-RESPONSE: Kill switch activated, encryption halted, snapshot initiated',
+                timestamp: timeAgo(4),
+                source: 'SOAR Engine'
+            },
+            {
+                id: '10',
+                type: 'system',
+                message: '📊 PCDS ML Confidence: 94.2% - Attack chain complete: Phishing → C2 → Priv-Esc → Ransomware',
+                timestamp: timeAgo(2),
+                source: 'ML Engine'
+            }
         ];
         setEvents(initialEvents);
+        setStats({
+            detections: 5,
+            actions: 3,
+            packets: 847293,
+            connections: 156,
+            suspicious: 4
+        });
 
         const interval = setInterval(() => {
             if (paused || realMode) return;
 
+            // High-impact event rotation for demo
             const eventTypes = [
-                { type: 'system' as const, message: `Network scan completed: ${Math.floor(Math.random() * 5000 + 1000)} packets analyzed`, source: 'Scanner' },
-                { type: 'system' as const, message: `Endpoint health check: ${Math.floor(Math.random() * 50 + 100)} hosts responding`, source: 'Health Monitor' },
-                { type: 'system' as const, message: `DNS query logged: ${['google.com', 'microsoft.com', 'github.com', 'aws.amazon.com'][Math.floor(Math.random() * 4)]}`, source: 'DNS Monitor' },
-                { type: 'detection' as const, message: 'New connection established from internal network', severity: 'low', source: 'Firewall' },
-                { type: 'action' as const, message: 'Firewall rule updated - blocked suspicious IP range', source: 'Auto Response' }
+                {
+                    type: 'detection' as const,
+                    message: `🔄 Behavioral anomaly: Entity activity ${Math.floor(Math.random() * 300 + 100)}% above baseline`,
+                    severity: 'high',
+                    source: 'UEBA',
+                    mitre: { technique_id: 'T1078', technique_name: 'Valid Accounts' }
+                },
+                {
+                    type: 'detection' as const,
+                    message: `⚠️ DNS Tunneling suspected: High entropy queries to ${['xyz123.evil.com', 'c2.malware.net', 'exfil.badactor.io'][Math.floor(Math.random() * 3)]}`,
+                    severity: 'high',
+                    source: 'DNS Monitor',
+                    mitre: { technique_id: 'T1048', technique_name: 'Exfiltration Over Alternative Protocol' }
+                },
+                {
+                    type: 'detection' as const,
+                    message: `🔴 Credential dumping detected: LSASS memory access on host-${String(Math.floor(Math.random() * 100)).padStart(3, '0')}`,
+                    severity: 'critical',
+                    source: 'EDR Agent',
+                    mitre: { technique_id: 'T1003', technique_name: 'OS Credential Dumping' }
+                },
+                {
+                    type: 'action' as const,
+                    message: '✅ Firewall rule updated: Blocked C2 IP range 185.174.xxx.0/24',
+                    source: 'Auto Response'
+                },
+                {
+                    type: 'system' as const,
+                    message: `📡 Network scan: ${Math.floor(Math.random() * 50000 + 10000)} packets analyzed, ${Math.floor(Math.random() * 3)} anomalies`,
+                    source: 'Scanner'
+                },
+                {
+                    type: 'detection' as const,
+                    message: `⚠️ Data exfiltration attempt: ${Math.floor(Math.random() * 500 + 100)}MB upload to cloud storage`,
+                    severity: 'high',
+                    source: 'DLP',
+                    mitre: { technique_id: 'T1567', technique_name: 'Exfiltration Over Web Service' }
+                }
             ];
 
             const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
@@ -120,15 +242,16 @@ export default function LiveFeedPage() {
                 timestamp: new Date().toISOString()
             };
 
-            setEvents(prev => [newEvent, ...prev.slice(0, 99)]);
+            setEvents(prev => [newEvent, ...prev.slice(0, 49)]);
             setStats(prev => ({
                 ...prev,
                 detections: prev.detections + (randomEvent.type === 'detection' ? 1 : 0),
                 actions: prev.actions + (randomEvent.type === 'action' ? 1 : 0),
-                packets: prev.packets + Math.floor(Math.random() * 2000 + 500),
-                connections: prev.connections + Math.floor(Math.random() * 5)
+                packets: prev.packets + Math.floor(Math.random() * 5000 + 1000),
+                connections: prev.connections + Math.floor(Math.random() * 3),
+                suspicious: prev.suspicious + (randomEvent.severity === 'critical' ? 1 : 0)
             }));
-        }, 1500);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [paused, realMode]);

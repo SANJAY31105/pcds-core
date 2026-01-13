@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCDS - Imagine Cup 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            min-height: 100vh;
+            padding: 60px 80px;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Gradient backgrounds */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(16, 163, 127, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #10a37f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #10a37f;
+            margin-bottom: 20px;
+        }
+
+        p,
+        li {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #a1a1a1;
+        }
+
+        .highlight {
+            color: #10a37f;
+            font-weight: 600;
+        }
+
+        .accent-box {
+            background: linear-gradient(135deg, rgba(16, 163, 127, 0.2) 0%, rgba(16, 163, 127, 0.05) 100%);
+            border: 1px solid rgba(16, 163, 127, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #10a37f;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #10a37f;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .column {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #10a37f;
+        }
+
+        .quote {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: #fff;
+            border-left: 4px solid #10a37f;
+            padding-left: 24px;
+            margin: 30px 0;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(16, 163, 127, 0.2);
+            color: #10a37f;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tag.azure {
+            background: rgba(0, 120, 212, 0.2);
+            color: #0078d4;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10a37f, #0d8a6a);
+            transition: width 0.3s;
+            z-index: 1000;
+        }
+
+        .nav {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .nav button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid #2a2a2a;
+            background: #141414;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav button:hover {
+            background: #10a37f;
+            border-color: #10a37f;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 50px;
+            left: 40px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .logo {
+            position: fixed;
+            top: 30px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #10a37f, #0d8a6a);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Title slide special */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: 6rem;
+        }
+
+        .title-slide .tagline {
+            font-size: 2rem;
+            color: #a1a1a1;
+            margin-bottom: 40px;
+        }
+
+        .powered-by {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 60px;
+            padding: 12px 24px;
+            background: rgba(0, 120, 212, 0.1);
+            border: 1px solid rgba(0, 120, 212, 0.3);
+            border-radius: 30px;
+        }
+
+        .powered-by span {
+            color: #0078d4;
+            font-weight: 500;
+        }
+
+        /* Kill chain visualization */
+        .kill-chain {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .kill-chain::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10a37f, #10a37f 80%, #ef4444 80%);
+        }
+
+        .chain-step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .chain-step .circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #141414;
+            border: 3px solid #10a37f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-weight: 600;
+        }
+
+        .chain-step.blocked .circle {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .chain-step .label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Comparison table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .comparison-table th {
+            color: #666;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .comparison-table td {
+            color: #a1a1a1;
+        }
+
+        .comparison-table tr:hover td {
+            background: rgba(16, 163, 127, 0.05);
+        }
+
+        .comparison-table .pcds {
+            color: #10a37f;
+            font-weight: 600;
+        }
+
+        .check {
+            color: #10a37f;
+        }
+
+        .cross {
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-bar" id="progress"></div>
+
+    <div class="logo">
+        <div class="logo-icon">P</div>
+        <div class="logo-text">PCDS</div>
+    </div>
+
+    <!-- SLIDE 1: TITLE -->
+    <div class="slide title-slide active" data-slide="1">
+        <h1>PCDS</h1>
+        <p class="tagline">Predictive Cyber Defence System</p>
+        <p style="font-size: 1.5rem; color: #10a37f; margin-bottom: 20px;">"Stop attacks before they start"</p>
+        <div class="powered-by">
+            <span>Powered by Microsoft Azure AI</span>
+            <span style="color: #666">| Imagine Cup 2026</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: PROBLEM -->
+    <div class="slide" data-slide="2">
+        <h2>The Problem</h2>
+        <h3>Every 39 seconds, a business loses $4.45M to a cyberattack they never saw coming.</h3>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value">$4.45M</div>
+                <div class="label">Average breach cost (IBM 2024)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">277</div>
+                <div class="label">Days to identify breach</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">65%</div>
+                <div class="label">Analysts with burnout</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">10K+</div>
+                <div class="label">Daily alerts (95% ignored)</div>
+            </div>
+        </div>
+
+        <div class="quote">
+            Traditional security tools are REACTIVE.<br>
+            They tell you what happened — <span class="highlight">after the damage is done.</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: SCENARIO -->
+    <div class="slide" data-slide="3">
+        <h2>Colonial Pipeline: May 2021</h2>
+
+        <div class="accent-box">
+            <ul style="font-size: 1.3rem;">
+                <li><strong>2:47 AM</strong> — Attacker enters with stolen VPN password</li>
+                <li><strong>Next 6 hours</strong> — 100GB encrypted, SIEM completely silent</li>
+                <li><strong>Morning</strong> — 45% of East Coast fuel supply offline</li>
+                <li><strong>Ransom paid:</strong> <span class="highlight">$4.4 million</span></li>
+            </ul>
+        </div>
+
+        <div class="quote" style="margin-top: 40px;">
+            What if their system saw this coming <span class="highlight">before execution</span>?<br><br>
+            That's what PCDS is building.
+        </div>
+    </div>
+
+    <!-- SLIDE 4: SOLUTION -->
+    <div class="slide" data-slide="4">
+        <h2>Our Solution: PCDS</h2>
+        <h3>Predictive Cyber Defence System</h3>
+
+        <div class="two-col">
+            <div class="column">
+                <h3 style="margin-bottom: 20px;">Core Capabilities</h3>
+                <ul>
+                    <li><strong>ML Ensemble</strong> — 5 models, 88.3% accuracy</li>
+                    <li><strong>Azure AI Co-pilot</strong> — Natural language threat explanations</li>
+                    <li><strong>Kill Chain Detection</strong> — Catches attacks at recon</li>
+                    <li><strong>SOAR Automation</strong> — Automated playbooks</li>
+                    <li><strong>MITRE ATT&CK</strong> — Full technique mapping</li>
+                </ul>
+            </div>
+            <div class="column" style="display: flex; align-items: center; justify-content: center;">
+                <div class="quote" style="border: none; text-align: center; font-size: 1.8rem;">
+                    "SIEMs tell you what happened.<br><br>
+                    <span class="highlight">PCDS tells you what's developing.</span>"
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: TODAY VS NEXT -->
+    <div class="slide" data-slide="5">
+        <h2>What PCDS Does Today vs Next</h2>
+
+        <div class="two-col">
+            <div class="column">
+                <h3>✅ TODAY (Proven)</h3>
+                <ul>
+                    <li>Early-stage phishing detection — 88.3% accuracy</li>
+                    <li>Lateral movement recognition — UNSW-NB15 validated</li>
+                    <li>Azure OpenAI threat explanations — Live demo</li>
+                    <li>Kill chain visualization — MITRE mapped</li>
+                    <li>1.9ms detection latency — E2E tested</li>
+                </ul>
+            </div>
+            <div class="column">
+                <h3>🔜 NEXT (Roadmap)</h3>
+                <ul>
+                    <li>Full probabilistic forecasting — Q2 2026</li>
+                    <li>Cross-tenant threat intel — Q3 2026</li>
+                    <li>Automated remediation — Q4 2026</li>
+                </ul>
+                <div class="accent-box" style="margin-top: 30px;">
+                    <p style="text-align: center; color: #fff;">
+                        We're honest about where we are.<br>
+                        <span class="highlight">That's how we earn trust.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: TRADE-OFFS -->
+    <div class="slide" data-slide="6">
+        <h2>What We Chose NOT To Do</h2>
+        <h3>Engineering decisions that matter</h3>
+
+        <div class="two-col">
+            <div class="column">
+                <p style="color: #fff; font-weight: 600; margin-bottom: 10px;">Low false positives over maximum recall
+                </p>
+                <p>"Better to miss 1 attack than alert on 1,000 false positives."</p>
+                <br><br>
+                <p style="color: #fff; font-weight: 600; margin-bottom: 10px;">Explainability over black-box accuracy
+                </p>
+                <p>"A 95% model is worthless if analysts can't understand it."</p>
+            </div>
+            <div class="column">
+                <p style="color: #fff; font-weight: 600; margin-bottom: 10px;">No automated destructive actions</p>
+                <p>"PCDS recommends, humans decide. Always."</p>
+                <br><br>
+                <p style="color: #fff; font-weight: 600; margin-bottom: 10px;">No zero-day prediction — by design</p>
+                <p>"That's our Year 2 focus."</p>
+            </div>
+        </div>
+
+        <div class="quote" style="margin-top: 30px; text-align: center; border: none;">
+            We know what we're good at. <span class="highlight">And what we're not. Yet.</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: MICROSOFT -->
+    <div class="slide" data-slide="7">
+        <h2>Why This Only Works Because of Microsoft</h2>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="tag azure">Azure OpenAI</div>
+                <p style="margin-top: 12px;">Explainability SOC analysts trust</p>
+            </div>
+            <div class="stat-card">
+                <div class="tag azure">Azure ML</div>
+                <p style="margin-top: 12px;">Enterprise-grade model deployment</p>
+            </div>
+            <div class="stat-card">
+                <div class="tag azure">Azure Identity</div>
+                <p style="margin-top: 12px;">Multi-tenant trust boundary</p>
+            </div>
+            <div class="stat-card">
+                <div class="tag azure">Azure Kubernetes</div>
+                <p style="margin-top: 12px;">Global SOC readiness</p>
+            </div>
+        </div>
+
+        <div class="quote" style="margin-top: 40px;">
+            "Without Microsoft Azure, PCDS would be a research project.<br>
+            <span class="highlight">Azure made it enterprise-ready.</span>"
+        </div>
+    </div>
+
+    <!-- SLIDE 8: HERO MOMENT -->
+    <div class="slide" data-slide="8">
+        <h2>One Hero Moment: Kill Chain Visualizer</h2>
+        <h3>Watch PCDS stop an attack mid-chain</h3>
+
+        <div class="kill-chain">
+            <div class="chain-step">
+                <div class="circle">1</div>
+                <div class="label">Recon</div>
+            </div>
+            <div class="chain-step">
+                <div class="circle">2</div>
+                <div class="label">Initial Access</div>
+            </div>
+            <div class="chain-step">
+                <div class="circle">3</div>
+                <div class="label">Execution</div>
+            </div>
+            <div class="chain-step">
+                <div class="circle">4</div>
+                <div class="label">Persistence</div>
+            </div>
+            <div class="chain-step blocked">
+                <div class="circle">✕</div>
+                <div class="label">BLOCKED</div>
+            </div>
+        </div>
+
+        <div class="accent-box">
+            <p style="color: #fff; text-align: center;">
+                Attack stopped at <span class="highlight">Stage 4 of 7</span><br>
+                <span style="color: #888; font-size: 0.9rem;">If judges remember one thing, it's this
+                    visualization.</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: ML PERFORMANCE -->
+    <div class="slide" data-slide="9">
+        <h2>ML Model Performance</h2>
+        <h3>Real numbers. Tested on UNSW-NB15 — fully reproducible.</h3>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value">88.3%</div>
+                <div class="label">Accuracy (Industry: 78%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">90.7%</div>
+                <div class="label">Precision (Industry: 75%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">2.8%</div>
+                <div class="label">False Positive Rate (Industry: 15%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">1.9ms</div>
+                <div class="label">Detection Latency</div>
+            </div>
+        </div>
+
+        <div class="column" style="margin-top: 30px;">
+            <h3>5-Model Ensemble</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                <div class="tag">LSTM Sequence</div>
+                <div class="tag">Random Forest</div>
+                <div class="tag">Isolation Forest</div>
+                <div class="tag">Behavioral Analyzer</div>
+                <div class="tag">DGA Detector CNN</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: WHY THEY FAIL -->
+    <div class="slide" data-slide="10">
+        <h2>Why Traditional Tools Fail</h2>
+        <h3>They were built for a different era</h3>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Era</th>
+                    <th>Tool Type</th>
+                    <th>Philosophy</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2000s</td>
+                    <td>SIEMs</td>
+                    <td>Log-centric — "Store everything, search later"</td>
+                </tr>
+                <tr>
+                    <td>2010s</td>
+                    <td>XDRs</td>
+                    <td>Detection-centric — "Find the known bad"</td>
+                </tr>
+                <tr>
+                    <td class="pcds">2020s</td>
+                    <td class="pcds">PCDS</td>
+                    <td class="pcds">Decision-centric — "Predict before it happens"</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="quote">
+            "We're not replacing them.<br>
+            <span class="highlight">We're the predictive layer they're missing.</span>"
+        </div>
+    </div>
+
+    <!-- SLIDE 11: ETHICS -->
+    <div class="slide" data-slide="11">
+        <h2>Ethics & Responsible AI</h2>
+        <h3>Aligned with Microsoft's AI principles</h3>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value" style="font-size: 1.5rem;">🧑‍💻</div>
+                <p style="font-weight: 600; color: #fff; margin: 12px 0;">Human-in-the-Loop</p>
+                <p style="font-size: 0.85rem;">PCDS recommends. Humans approve. Always.</p>
+            </div>
+            <div class="stat-card">
+                <div class="value" style="font-size: 1.5rem;">🔍</div>
+                <p style="font-weight: 600; color: #fff; margin: 12px 0;">Explainability First</p>
+                <p style="font-size: 0.85rem;">Every alert includes Azure OpenAI explanation.</p>
+            </div>
+            <div class="stat-card">
+                <div class="value" style="font-size: 1.5rem;">🛡️</div>
+                <p style="font-weight: 600; color: #fff; margin: 12px 0;">No Auto-Destruction</p>
+                <p style="font-size: 0.85rem;">Never auto-delete without human approval.</p>
+            </div>
+            <div class="stat-card">
+                <div class="value" style="font-size: 1.5rem;">🔒</div>
+                <p style="font-weight: 600; color: #fff; margin: 12px 0;">Privacy by Design</p>
+                <p style="font-size: 0.85rem;">On-premise analysis. Anonymized telemetry only.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: BUSINESS MODEL -->
+    <div class="slide" data-slide="12">
+        <h2>Business Model</h2>
+
+        <div class="two-col">
+            <div>
+                <h3>SaaS Pricing</h3>
+                <div class="stat-card" style="margin: 15px 0;">
+                    <div class="value">$499</div>
+                    <div class="label">/month • 100 endpoints • Startup</div>
+                </div>
+                <div class="stat-card" style="margin: 15px 0; border-color: #10a37f;">
+                    <div class="value">$1,999</div>
+                    <div class="label">/month • 500 endpoints • Business</div>
+                </div>
+                <div class="stat-card" style="margin: 15px 0;">
+                    <div class="value">Custom</div>
+                    <div class="label">Unlimited • Enterprise</div>
+                </div>
+            </div>
+            <div>
+                <h3>Unit Economics</h3>
+                <div class="stat-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-card">
+                        <div class="value">$18K</div>
+                        <div class="label">ACV</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">$1.2K</div>
+                        <div class="label">CAC</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">15x</div>
+                        <div class="label">LTV:CAC</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">85%</div>
+                        <div class="label">Gross Margin</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 13: MARKET -->
+    <div class="slide" data-slide="13">
+        <h2>Market Opportunity</h2>
+        <h3>$12.5B Market by 2027 | CAGR 14.2%</h3>
+
+        <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <div class="value">$12.5B</div>
+                <div class="label">TAM (Global NDR+XDR)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">$3.2B</div>
+                <div class="label">SAM (Mid-Enterprise APAC)</div>
+            </div>
+            <div class="stat-card" style="border-color: #10a37f;">
+                <div class="value">$320M</div>
+                <div class="label">SOM (5-Year Target)</div>
+            </div>
+        </div>
+
+        <div class="column" style="margin-top: 30px;">
+            <h3>Why Now?</h3>
+            <ul>
+                <li><strong>AI explosion</strong> — Attacks are easier to automate → Need smarter defense</li>
+                <li><strong>Remote work</strong> — Larger attack surface than ever</li>
+                <li><strong>Talent shortage</strong> — 3.4M unfilled cybersecurity jobs globally</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: TEAM -->
+    <div class="slide" data-slide="14">
+        <h2>Team</h2>
+
+        <div class="two-col">
+            <div class="column">
+                <h3>[Your Name]</h3>
+                <p style="color: #10a37f; margin-bottom: 15px;">CEO & Technical Lead</p>
+                <div class="quote" style="font-size: 1.1rem;">
+                    "After watching my college suffer a ransomware attack, I built the system I wished existed."
+                </div>
+                <ul style="margin-top: 20px;">
+                    <li>Built PCDS from 0 to MVP</li>
+                    <li>Deep in ML/security research</li>
+                    <li>Know what I don't know — and hire for it</li>
+                </ul>
+            </div>
+            <div class="column">
+                <h3>Team Members</h3>
+                <br>
+                <p style="color: #fff; font-weight: 500;">[Team Member 2]</p>
+                <p style="color: #888; margin-bottom: 20px;">Product</p>
+
+                <p style="color: #fff; font-weight: 500;">[Team Member 3]</p>
+                <p style="color: #888; margin-bottom: 20px;">Security Research</p>
+
+                <p style="color: #fff; font-weight: 500;">[Team Member 4]</p>
+                <p style="color: #888;">Business Development</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 15: THE ASK -->
+    <div class="slide" data-slide="15">
+        <h2>The Ask</h2>
+
+        <div class="two-col">
+            <div>
+                <h3>What We Need</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>$100K Azure Credits</strong> — Scale ML training</li>
+                    <li><strong>Microsoft Mentorship</strong> — Enterprise GTM guidance</li>
+                    <li><strong>Partner Introductions</strong> — Azure customers</li>
+                </ul>
+            </div>
+            <div>
+                <h3>What We'll Deliver</h3>
+                <div class="stat-grid" style="grid-template-columns: 1fr;">
+                    <div class="stat-card">
+                        <div class="value">100</div>
+                        <div class="label">Pilot customers by Year 1</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">$1M</div>
+                        <div class="label">ARR by Year 2</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #10a37f;">
+                        <div class="value">#1</div>
+                        <div class="label">Azure-native predictive NDR</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quote" style="text-align: center; border: none; margin-top: 40px; font-size: 2rem;">
+            <span class="highlight">"Stop attacks before they start."</span>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button onclick="prevSlide()">←</button>
+        <button onclick="nextSlide()">→</button>
+    </div>
+
+    <div class="slide-counter">
+        <span id="current">1</span> / <span id="total">15</span>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 15;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            document.querySelector(`[data-slide="${currentSlide}"]`).classList.add('active');
+
+            document.getElementById('current').textContent = currentSlide;
+            document.getElementById('progress').style.width = `${(currentSlide / totalSlides) * 100}%`;
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+        document.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextSlide();
+                else prevSlide();
+            }
+        });
+    </script>
+</body>
+
+</html>

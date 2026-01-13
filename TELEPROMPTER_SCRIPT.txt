@@ -1,0 +1,75 @@
+Hi, I'm Sanjay from [Your University].
+
+Every 39 seconds, a cyber attack happens somewhere in the world.
+
+But here's what most people don't know: 
+60% of small businesses that get breached... 
+shut down within 6 months.
+
+The tools they use? 
+They only react *after* the damage is done. 
+By then, it's too late.
+
+We built something different.
+
+This is PCDS — a Predictive Cyber Defence System.
+
+Instead of waiting for attacks to happen, 
+we predict them.
+
+How? 
+We trained a 5-model machine learning ensemble 
+on over 5 million real attack samples. 
+
+It detects behavioral anomalies in real-time — 
+patterns that signal an attack is coming.
+
+When it detects a threat? 
+Automatic isolation. 
+No human delay. 
+No waiting for a security analyst to wake up.
+
+And because small business owners aren't security experts, 
+we built an AI Copilot — powered by Azure OpenAI — 
+that explains every threat in plain English.
+
+This isn't a concept. This is tested.
+
+We achieved 88.3% detection accuracy 
+on the CICIDS2017 benchmark dataset.
+
+Under 2 milliseconds latency — 
+fast enough for real-time protection.
+
+And less than 3% false positives — 
+because shutting down a business by mistake 
+is just as bad as missing an attack.
+
+All of this runs on Microsoft Azure. 
+Azure OpenAI for natural language. 
+Azure infrastructure for scale.
+
+Right now, elite cybersecurity costs 
+$50,000 to $100,000 a year. 
+That's out of reach for 99% of businesses.
+
+We're changing that.
+
+PCDS delivers enterprise-grade protection 
+at a price small businesses can afford.
+
+Our goal? 
+Give organizations hours or days of warning 
+instead of minutes. 
+Turn cybersecurity from reactive... 
+to predictive.
+
+PCDS turns security from reaction... 
+into prevention.
+
+We're built on Azure. 
+We're ready to scale. 
+And we're ready to protect the businesses 
+that power our economy.
+
+Thank you.

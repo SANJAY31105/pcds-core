@@ -93,10 +93,16 @@ class Settings(BaseSettings):
     ENTITY_CACHE_TTL_SECONDS: int = 300  # Cache entity data for 5 minutes
     DETECTION_BATCH_SIZE: int = 100  # Process detections in batches
     
+    # Azure OpenAI
+    AZURE_OPENAI_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    AZURE_OPENAI_KEY: str = os.getenv("AZURE_OPENAI_KEY", "")
+    AZURE_OPENAI_DEPLOYMENT: str = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4")
+    
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
         case_sensitive = True
+        extra = 'ignore'  # Allow extra environment variables
 
 
 # Global settings instance

@@ -52,7 +52,7 @@ export default function DetectionsPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="min-h-screen bg-[#0a0a0a] p-6 space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-semibold text-white">Detections</h1>
@@ -79,7 +79,7 @@ export default function DetectionsPage() {
                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${severityFilter === sev ? 'bg-[#1a1a1a] text-white' : 'text-[#666] hover:text-[#a1a1a1]'
                                 }`}
                         >
-                            {sev || 'All'}
+                            {sev ? sev.charAt(0).toUpperCase() + sev.slice(1) : 'All'}
                         </button>
                     ))}
                 </div>
@@ -96,22 +96,22 @@ export default function DetectionsPage() {
                     </div>
                 ) : (
                     filteredDetections.map((detection) => (
-                        <div key={detection.id} className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-4 hover:bg-[#1a1a1a] transition-colors cursor-pointer">
+                        <div key={detection.id} className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-4 hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4">
                                     <div className="w-2 h-2 rounded-full mt-2" style={{ backgroundColor: getSeverityColor(detection.severity) }}></div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-sm font-medium text-white">{detection.title}</h3>
-                                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${getSeverityColor(detection.severity)}20`, color: getSeverityColor(detection.severity) }}>
+                                            <h3 className="text-sm font-medium text-white group-hover:text-[#10a37f] transition-colors">{detection.title}</h3>
+                                            <span className="text-xs px-2 py-0.5 rounded font-mono" style={{ backgroundColor: `${getSeverityColor(detection.severity)}20`, color: getSeverityColor(detection.severity) }}>
                                                 {detection.severity.toUpperCase()}
                                             </span>
                                         </div>
                                         <p className="text-xs text-[#666] mb-2">{detection.description?.substring(0, 100)}...</p>
                                         <div className="flex items-center gap-4 text-xs text-[#666]">
-                                            <span>Source: {detection.source_ip}</span>
+                                            <span>Source: <span className="text-[#a1a1a1]">{detection.source_ip}</span></span>
                                             <span>→</span>
-                                            <span>Dest: {detection.destination_ip}</span>
+                                            <span>Dest: <span className="text-[#a1a1a1]">{detection.destination_ip}</span></span>
                                             {detection.mitre && (
                                                 <span className="text-[#10a37f]">{detection.mitre.technique_id}</span>
                                             )}
@@ -120,7 +120,7 @@ export default function DetectionsPage() {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-[#666]">{new Date(detection.timestamp).toLocaleTimeString()}</p>
-                                    <ChevronRight className="w-4 h-4 text-[#444] mt-2 ml-auto" />
+                                    <ChevronRight className="w-4 h-4 text-[#444] mt-2 ml-auto group-hover:text-[#10a37f]" />
                                 </div>
                             </div>
                         </div>

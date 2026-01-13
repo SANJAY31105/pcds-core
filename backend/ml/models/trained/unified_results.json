@@ -1,0 +1,9 @@
+{
+  "best_accuracy": 76.65816709164542,
+  "total_samples": 166675,
+  "real_samples": 100011,
+  "synthetic_samples": 49996,
+  "online_samples": 16668,
+  "epochs": 50,
+  "timestamp": "2025-12-09T12:56:45.017511"
+}

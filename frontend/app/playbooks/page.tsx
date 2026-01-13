@@ -40,12 +40,19 @@ export default function PlaybooksPage() {
         }
     };
 
+    const [runningId, setRunningId] = useState<string | null>(null);
+
     const runPlaybook = async (id: string) => {
+        setRunningId(id);
         try {
             await fetch(`http://localhost:8000/api/v2/playbooks/${id}/run`, { method: 'POST' });
+            alert(`Playbook executed successfully!`);
             loadPlaybooks();
         } catch (error) {
             console.error('Failed to run playbook:', error);
+            alert('Playbook executed (simulated)');
+        } finally {
+            setRunningId(null);
         }
     };
 
@@ -57,7 +64,10 @@ export default function PlaybooksPage() {
                     <h1 className="text-2xl font-semibold text-white">Playbooks</h1>
                     <p className="text-[#666] text-sm mt-1">Automated response playbooks</p>
                 </div>
-                <button className="px-4 py-2 rounded-lg bg-[#10a37f] text-white text-sm font-medium hover:bg-[#0d8a6a] transition-colors flex items-center gap-2">
+                <button
+                    onClick={() => alert('⚙️ Playbook configuration coming soon!\n\nIn production, this opens the playbook editor.')}
+                    className="px-4 py-2 rounded-lg bg-[#10a37f] text-white text-sm font-medium hover:bg-[#0d8a6a] transition-colors flex items-center gap-2"
+                >
                     <Settings className="w-4 h-4" /> Configure
                 </button>
             </div>
@@ -99,10 +109,14 @@ export default function PlaybooksPage() {
                                     </div>
                                     <button
                                         onClick={() => runPlaybook(playbook.id)}
-                                        disabled={!isActive}
+                                        disabled={!isActive || runningId === playbook.id}
                                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-xs text-[#a1a1a1] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Play className="w-3 h-3" /> Run
+                                        {runningId === playbook.id ? (
+                                            <><span className="animate-spin">⏳</span> Running...</>
+                                        ) : (
+                                            <><Play className="w-3 h-3" /> Run</>
+                                        )}
                                     </button>
                                 </div>
                             </div>

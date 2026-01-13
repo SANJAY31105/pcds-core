@@ -1,5 +1,10 @@
 // TypeScript types for PCDS Enterprise
 
+export interface WebSocketMessage {
+    type: string;
+    data: any;
+    timestamp?: string;
+}
 export interface Entity {
     id: string;
     entity_number?: number;

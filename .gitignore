@@ -36,11 +36,20 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+pcds_enterprise.db
 
-# Docker
-docker-compose.override.yml
-
-# ML Models
-*.pth
+# ML Models - Large files
 *.pt
-models/*.pth
+*.pth
+*.pkl
+backend/ml/models/trained/*.pt
+backend/ml/models/*.pkl
+backend/ml/datasets/
+backend/ml/datasets/**
+
+# Large dataset files
+*.csv
+*.crdownload
+
+# PowerPoint (optional - comment out if needed)
+# *.pptx

@@ -11,7 +11,7 @@ from config.database import db_manager
 from cache.redis_client import cache_client  # Import cache client
 from cache.memory_cache import memory_cache  # Enterprise fallback cache
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+router = APIRouter(tags=["dashboard"])
 
 
 @router.get("/overview")

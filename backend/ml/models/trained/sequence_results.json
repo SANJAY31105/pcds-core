@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-12-09T10:28:02.756625",
+  "stage_accuracy": 1.0,
+  "attack_stages": [
+    "normal",
+    "reconnaissance",
+    "initial_access",
+    "execution",
+    "persistence",
+    "privilege_esc",
+    "defense_evasion",
+    "credential_access",
+    "discovery",
+    "lateral_movement",
+    "collection",
+    "exfiltration",
+    "impact"
+  ],
+  "train_samples": 16000,
+  "test_samples": 4000
+}

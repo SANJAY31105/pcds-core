@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCDS | Imagine Cup 2026 Final Pitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@200;400;600;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg: #010205;
+            --azure: #0078d4;
+            --neon: #00f2ff;
+            --danger: #ff2d55;
+            --panel: rgba(10, 15, 25, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --glow: 0 0 30px rgba(0, 242, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 40px;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.1;
+            z-index: -1;
+            transform: perspective(1000px) rotateX(60deg) translateY(-200px) scale(2);
+            animation: moveGrid 30s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 0 1200px;
+            }
+        }
+
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(0, 120, 212, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        .glass {
+            background: var(--panel);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--neon) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .product-shot {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 60px rgba(0, 242, 255, 0.1);
+            width: 100%;
+            transition: transform 0.5s ease;
+            background: #000;
+        }
+
+        .product-shot:hover {
+            transform: scale(1.01);
+        }
+
+        .nav-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.4;
+            font-size: 11px;
+            letter-spacing: 4px;
+            z-index: 50;
+            text-transform: uppercase;
+        }
+
+        .slide-num {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            font-family: 'Space Grotesk';
+            opacity: 0.2;
+            font-size: 14px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .quote-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--neon);
+            padding: 20px 24px;
+            border-radius: 0 16px 16px 0;
+        }
+
+        @media print {
+            html {
+                scroll-snap-type: none;
+            }
+
+            body {
+                overflow: visible;
+            }
+
+            .slide {
+                page-break-after: always;
+                height: 100vh;
+            }
+
+            .slide:last-child {
+                page-break-after: avoid;
+            }
+
+            .nav-hint,
+            .ambient-glow,
+            .grid-overlay {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-glow"></div>
+    <div class="grid-overlay"></div>
+    <div class="nav-hint">SCROLL TO PROTECT <i class="fa-solid fa-chevron-down ml-2 animate-bounce"></i></div>
+
+    <!-- SLIDE 1: PROBLEM + URGENCY -->
+    <section class="slide" id="problem">
+        <div class="slide-num">01 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 grid grid-cols-2 gap-16 items-center">
+            <div>
+                <p class="text-red-500 font-bold tracking-widest text-xs uppercase mb-4">The Crisis</p>
+                <h2 class="text-7xl font-bold mb-6 leading-tight">Every 39 Seconds</h2>
+                <p class="text-xl text-white/60 leading-relaxed mb-8">
+                    A cyberattack happens. SMBs are the "soft underbelly" of the economy—too small for enterprise
+                    security, too vital to fail.
+                </p>
+                <div class="space-y-6">
+                    <div class="flex gap-6 items-start">
+                        <div class="text-5xl font-bold text-red-500">60%</div>
+                        <p class="text-sm text-white/50 pt-2">of SMBs close within 6 months of a breach. For them,
+                            encryption is bankruptcy.</p>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="text-5xl font-bold text-orange-500">$50K+</div>
+                        <p class="text-sm text-white/50 pt-2">per year for enterprise security. 99% of SMBs can't afford
+                            proper protection.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <img src="screenshot_live_feed.png" class="product-shot" alt="PCDS Live Threat Feed">
+                <div
+                    class="absolute -bottom-4 -right-4 bg-red-600 px-4 py-2 text-[10px] font-mono font-bold uppercase tracking-widest shadow-xl rounded">
+                    Live Threat Feed
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 2: SOLUTION -->
+    <section class="slide" id="solution">
+        <div class="slide-num">02 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 grid grid-cols-2 gap-16 items-center">
+            <div>
+                <div
+                    class="mb-6 inline-block px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold tracking-[0.3em] uppercase">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" width="16"
+                        class="inline mr-2" alt="Azure">
+                    Powered by Microsoft Azure
+                </div>
+                <h2 class="text-5xl font-bold mb-4 text-gradient">PCDS</h2>
+                <p class="text-xl text-white/60 mb-8">Predictive Cyber Defence System for SMBs</p>
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center text-cyan-400 text-xl">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">5-Model ML Ensemble</h4>
+                            <p class="text-xs text-white/50">Trained on 5.3M+ attack samples. 88.3% accuracy.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 text-xl">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">AI Security Copilot</h4>
+                            <p class="text-xs text-white/50">Azure OpenAI explains threats in plain English.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 text-xl">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Automated Response</h4>
+                            <p class="text-xs text-white/50">&lt;2ms latency. Instant isolation. No human delay.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <img src="screenshot_dashboard.png" class="product-shot" alt="PCDS Dashboard">
+                <div class="grid grid-cols-4 gap-4 mt-6">
+                    <div class="stat-card">
+                        <div class="text-2xl font-bold text-cyan-400">88.3%</div>
+                        <p class="text-[10px] text-white/40 uppercase">Accuracy</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="text-2xl font-bold text-blue-400">&lt;2ms</div>
+                        <p class="text-[10px] text-white/40 uppercase">Latency</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="text-2xl font-bold text-green-400">&lt;3%</div>
+                        <p class="text-[10px] text-white/40 uppercase">False Pos</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="text-2xl font-bold text-purple-400">5.3M+</div>
+                        <p class="text-[10px] text-white/40 uppercase">Samples</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 3: AZURE ARCHITECTURE -->
+    <section class="slide" id="architecture">
+        <div class="slide-num">03 / 08</div>
+        <div class="glass w-full max-w-6xl p-12">
+            <div class="text-center mb-10">
+                <span class="text-blue-400 font-bold tracking-widest text-xs uppercase">Technical Architecture</span>
+                <h2 class="text-5xl font-bold mt-2">Built on Microsoft Azure</h2>
+            </div>
+
+            <!-- Flow Diagram -->
+            <div class="flex items-center justify-between gap-4 mb-10">
+                <div class="flex-1 glass p-6 text-center">
+                    <div class="text-3xl mb-3">📡</div>
+                    <h4 class="font-bold text-sm">Data Ingestion</h4>
+                    <p class="text-[10px] text-white/40 mt-1">Network telemetry & logs</p>
+                    <div class="mt-2 text-xs text-blue-400">Azure Monitor</div>
+                </div>
+                <div class="text-cyan-400 text-2xl">→</div>
+                <div class="flex-1 glass p-6 text-center border-cyan-500/30">
+                    <div class="text-3xl mb-3">🧠</div>
+                    <h4 class="font-bold text-sm">ML Detection</h4>
+                    <p class="text-[10px] text-white/40 mt-1">5-model ensemble</p>
+                    <div class="mt-2 text-xs text-cyan-400">Azure ML + GPU</div>
+                </div>
+                <div class="text-cyan-400 text-2xl">→</div>
+                <div class="flex-1 glass p-6 text-center">
+                    <div class="text-3xl mb-3">⚡</div>
+                    <h4 class="font-bold text-sm">Risk Scoring</h4>
+                    <p class="text-[10px] text-white/40 mt-1">MITRE ATT&CK mapping</p>
+                    <div class="mt-2 text-xs text-purple-400">88.3% Accuracy</div>
+                </div>
+                <div class="text-cyan-400 text-2xl">→</div>
+                <div class="flex-1 glass p-6 text-center border-green-500/30">
+                    <div class="text-3xl mb-3">🛡️</div>
+                    <h4 class="font-bold text-sm">Auto Response</h4>
+                    <p class="text-[10px] text-white/40 mt-1">Isolate, block, alert</p>
+                    <div class="mt-2 text-xs text-green-400">Azure Functions</div>
+                </div>
+            </div>
+
+            <!-- Azure Services -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                <p class="text-[10px] uppercase tracking-widest text-white/40 mb-4">Azure Services Integrated</p>
+                <div class="flex flex-wrap gap-3">
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure
+                        OpenAI</span>
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure
+                        Functions</span>
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure Kubernetes
+                        Service</span>
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure Blob
+                        Storage</span>
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure
+                        Monitor</span>
+                    <span class="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium">Azure SQL</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 4: PRODUCT FEATURES -->
+    <section class="slide" id="features">
+        <div class="slide-num">04 / 08</div>
+        <div class="glass w-full max-w-6xl p-8">
+            <div class="text-center mb-6">
+                <span class="text-cyan-400 font-bold tracking-widest text-xs uppercase">What Users See</span>
+                <h2 class="text-4xl font-bold mt-2">Built for Non-Technical Owners</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 class="font-bold text-base mb-2 flex items-center gap-2"><span class="text-cyan-400">📊</span>
+                        Smart Dashboard</h3>
+                    <p class="text-xs text-white/50 mb-2">Real-time risk score, active threats, simple status colors.
+                    </p>
+                    <img src="screenshot_dashboard.png" class="product-shot" alt="Dashboard">
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 class="font-bold text-base mb-2 flex items-center gap-2"><span class="text-purple-400">🤖</span>
+                        AI Security Copilot</h3>
+                    <p class="text-xs text-white/50 mb-2">"What happened?" → Plain-language answers via Azure OpenAI.
+                    </p>
+                    <img src="screenshot_copilot.png" class="product-shot" alt="AI Copilot">
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 class="font-bold text-base mb-2 flex items-center gap-2"><span class="text-green-400">⚡</span>
+                        Automated Playbooks</h3>
+                    <p class="text-xs text-white/50 mb-2">Instant isolation, IP blocking, team alerts — no human delays.
+                    </p>
+                    <img src="screenshot_playbooks.png" class="product-shot" alt="Playbooks">
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <h3 class="font-bold text-base mb-2 flex items-center gap-2"><span class="text-blue-400">🎯</span>
+                        MITRE ATT&CK Mapping</h3>
+                    <p class="text-xs text-white/50 mb-2">Every threat mapped to industry framework. PDF reports.</p>
+                    <img src="screenshot_mitre.png" class="product-shot" alt="MITRE">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 5: VALIDATION & TRACTION -->
+    <section class="slide" id="validation">
+        <div class="slide-num">05 / 08</div>
+        <div class="glass w-full max-w-5xl p-8">
+            <div class="text-center mb-4">
+                <span class="text-green-400 font-bold tracking-widest text-xs uppercase">Early Validation</span>
+                <h2 class="text-4xl font-bold mt-1">Real SMB Feedback</h2>
+            </div>
+
+            <div class="space-y-3 mb-4">
+                <div class="quote-card" style="padding: 12px 16px;">
+                    <p class="text-sm text-white/90 mb-2 italic">"We surveyed SMB banks across India — they loved the
+                        simplicity and are ready to adopt PCDS."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center text-cyan-400 text-sm">
+                            🏦</div>
+                        <div>
+                            <p class="font-semibold text-sm">SMB Bank Survey</p>
+                            <p class="text-[9px] text-white/40 uppercase">Multiple banks • Strong purchase intent</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="quote-card" style="padding: 12px 16px;">
+                    <p class="text-sm text-white/90 mb-2 italic">"Enterprise-level protection that fits our budget. We
+                        want this product."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 font-bold text-sm">
+                            B</div>
+                        <div>
+                            <p class="font-semibold text-sm">Cooperative Bank Manager</p>
+                            <p class="text-[9px] text-white/40 uppercase">Rural India • Financial Services</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="quote-card" style="padding: 12px 16px;">
+                    <p class="text-sm text-white/90 mb-2 italic">"Educational institutions loved how easy it is to
+                        protect student data."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 text-sm">
+                            🎓</div>
+                        <div>
+                            <p class="font-semibold text-sm">Education Sector Survey</p>
+                            <p class="text-[9px] text-white/40 uppercase">Schools & Colleges • India</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mentor Endorsement -->
+            <div class="quote-card mb-4" style="border-left-color: #0078d4; padding: 12px 16px;">
+                <p class="text-sm text-white/90 mb-2 italic">"Stunning work! We will deploy this in our college soon."
+                </p>
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400 font-bold text-sm">
+                        S</div>
+                    <div>
+                        <p class="font-semibold text-sm">Sandeep Babu Challa</p>
+                        <p class="text-[9px] text-white/40 uppercase">Industry Mentor • First Confirmed Deployment</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="stat-card" style="padding: 12px;">
+                    <div class="text-xl mb-1">🎓</div>
+                    <p class="text-[10px] text-white/60">College deployment confirmed</p>
+                </div>
+                <div class="stat-card" style="padding: 12px;">
+                    <div class="text-xl mb-1">⚡</div>
+                    <p class="text-[10px] text-white/60">Automated response critical</p>
+                </div>
+                <div class="stat-card" style="padding: 12px;">
+                    <div class="text-xl mb-1">💰</div>
+                    <p class="text-[10px] text-white/60">Pricing validated</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 6: COMPETITIVE LANDSCAPE -->
+    <section class="slide" id="competitive">
+        <div class="slide-num">06 / 08</div>
+        <div class="w-full max-w-6xl">
+            <span class="text-center block text-white/40 uppercase tracking-[0.3em] text-xs mb-4">Market Gap</span>
+            <h2 class="text-center text-5xl font-bold mb-16">Enterprise Security is a Luxury</h2>
+            <div class="grid grid-cols-4 gap-6">
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">Darktrace</p>
+                    <div class="text-4xl font-bold mb-2">$100k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Annual Subscription</p>
+                </div>
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">Vectra AI</p>
+                    <div class="text-4xl font-bold mb-2">$80k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Enterprise Entry</p>
+                </div>
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">CrowdStrike</p>
+                    <div class="text-4xl font-bold mb-2">$50k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Core Platform</p>
+                </div>
+                <div
+                    class="glass p-8 text-center border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_40px_rgba(0,242,255,0.1)]">
+                    <p class="text-[10px] tracking-widest text-cyan-400 font-bold mb-4 uppercase">🛡️ PCDS</p>
+                    <div class="text-4xl font-bold mb-2 text-cyan-400">$1,200</div>
+                    <p class="text-[10px] uppercase tracking-widest text-cyan-400">per year</p>
+                </div>
+            </div>
+            <p class="text-center mt-12 text-white/60 font-medium text-2xl">"Democratizing elite cybersecurity for the
+                99%."</p>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: GTM & PRICING -->
+    <section class="slide" id="gtm">
+        <div class="slide-num">07 / 08</div>
+        <div class="glass w-full max-w-6xl p-12">
+            <div class="text-center mb-10">
+                <span class="text-purple-400 font-bold tracking-widest text-xs uppercase">Business Model</span>
+                <h2 class="text-5xl font-bold mt-2">Go-to-Market Strategy</h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-xl font-bold mb-6">Distribution Channels</h3>
+                    <div class="space-y-4">
+                        <div class="glass p-5">
+                            <h4 class="font-bold text-cyan-400 mb-2">Azure Marketplace</h4>
+                            <p class="text-sm text-white/50">Direct to SMBs already using Microsoft 365. One-click
+                                deployment.</p>
+                        </div>
+                        <div class="glass p-5">
+                            <h4 class="font-bold text-purple-400 mb-2">MSP Partnerships</h4>
+                            <p class="text-sm text-white/50">Managed Service Providers manage IT for SMBs but lack
+                                advanced security. We fill that gap.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold mb-6">Pricing Model</h3>
+                    <div class="space-y-4">
+                        <div class="glass p-5 border-cyan-500/30 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold">Starter</h4>
+                                <p class="text-xs text-white/40">1–25 endpoints</p>
+                            </div>
+                            <div class="text-2xl font-bold text-cyan-400">$99<span
+                                    class="text-sm text-white/40">/mo</span></div>
+                        </div>
+                        <div class="glass p-5 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold">Growth</h4>
+                                <p class="text-xs text-white/40">26–100 endpoints</p>
+                            </div>
+                            <div class="text-2xl font-bold text-blue-400">$299<span
+                                    class="text-sm text-white/40">/mo</span></div>
+                        </div>
+                        <div class="glass p-5 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold">Enterprise</h4>
+                                <p class="text-xs text-white/40">100+ endpoints</p>
+                            </div>
+                            <div class="text-xl font-bold text-purple-400">Custom</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 bg-white/5 rounded-2xl p-6 border border-white/10">
+                <p class="text-[10px] uppercase tracking-widest text-white/40 mb-4">Launch Timeline</p>
+                <div class="flex justify-between text-center">
+                    <div>
+                        <div class="text-cyan-400 font-bold">Q1 2026</div>
+                        <p class="text-xs text-white/40">Final pilots + Azure Marketplace</p>
+                    </div>
+                    <div class="text-white/20">→</div>
+                    <div>
+                        <div class="text-blue-400 font-bold">Q2 2026</div>
+                        <p class="text-xs text-white/40">Beta with 10 MSP partners</p>
+                    </div>
+                    <div class="text-white/20">→</div>
+                    <div>
+                        <div class="text-purple-400 font-bold">Q3 2026</div>
+                        <p class="text-xs text-white/40">Scale: India + Southeast Asia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 8: WHY NOW + ASK -->
+    <section class="slide" id="why-now">
+        <div class="slide-num">08 / 08</div>
+        <div class="glass w-full max-w-5xl p-8 text-center">
+            <h2 class="text-5xl font-black mb-6 text-gradient">Why PCDS Wins</h2>
+
+            <div class="grid grid-cols-2 gap-4 mb-6 text-left">
+                <div class="stat-card text-left" style="padding: 12px;">
+                    <div class="text-xl mb-1">⏰</div>
+                    <h3 class="font-bold text-sm mb-1">Timing</h3>
+                    <p class="text-[10px] text-white/50">Post-2024 cyber attacks have SMBs desperate for solutions.</p>
+                </div>
+                <div class="stat-card text-left" style="padding: 12px;">
+                    <div class="text-xl mb-1">☁️</div>
+                    <h3 class="font-bold text-sm mb-1">Azure Advantage</h3>
+                    <p class="text-[10px] text-white/50">Native integration. Marketplace visibility.</p>
+                </div>
+                <div class="stat-card text-left" style="padding: 12px;">
+                    <div class="text-xl mb-1">👥</div>
+                    <h3 class="font-bold text-sm mb-1">Team</h3>
+                    <p class="text-[10px] text-white/50">CS students with cybersecurity passion + validation.</p>
+                </div>
+                <div class="stat-card text-left" style="padding: 12px;">
+                    <div class="text-xl mb-1">📈</div>
+                    <h3 class="font-bold text-sm mb-1">Market</h3>
+                    <p class="text-[10px] text-white/50">2M+ SMBs in India. Global TAM: $50B+.</p>
+                </div>
+            </div>
+
+            <div class="glass p-4 border-cyan-500/30 bg-cyan-500/5 mb-4">
+                <h3 class="text-base font-bold mb-2">With Imagine Cup Support</h3>
+                <div class="flex justify-center gap-6 text-xs">
+                    <span class="flex items-center gap-1"><span class="text-cyan-400">✓</span> Azure Marketplace</span>
+                    <span class="flex items-center gap-1"><span class="text-cyan-400">✓</span> MSP partnerships</span>
+                    <span class="flex items-center gap-1"><span class="text-cyan-400">✓</span> Protect SMBs</span>
+                </div>
+            </div>
+
+            <p class="text-2xl font-semibold mb-4">Let's build <span class="text-gradient">enterprise security for
+                    everyone.</span></p>
+
+            <div class="flex justify-center gap-3 flex-wrap">
+                <div class="px-4 py-2 glass text-xs text-white/80">Sanjay Krishna Reddy</div>
+                <div class="px-4 py-2 glass text-xs text-white/80">Nihar Varma</div>
+                <div class="px-4 py-2 glass text-xs text-white/80">Sanjay Varma</div>
+            </div>
+            <p class="text-[10px] text-white/40 mt-3">Team SURAKSHA AI • Imagine Cup 2026</p>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('keydown', (e) => {
+            const height = window.innerHeight;
+            const current = window.scrollY;
+            if (e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                window.scrollTo({ top: current + height, behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                window.scrollTo({ top: current - height, behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+
+</html>

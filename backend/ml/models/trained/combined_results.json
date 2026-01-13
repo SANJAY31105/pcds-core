@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-12-09T11:27:00.528176",
+  "accuracy": 0.8478394746780396,
+  "datasets": [
+    "CICIDS2017",
+    "UNSW-NB15"
+  ],
+  "total_samples": 2777494,
+  "train_samples": 2221995,
+  "test_samples": 555499,
+  "features": 40
+}

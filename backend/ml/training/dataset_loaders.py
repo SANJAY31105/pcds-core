@@ -100,7 +100,7 @@ class CICIDS2017Loader(DatasetLoader):
             features, labels, attack_types
         """
         if file_path:
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, encoding='utf-8', on_bad_lines='skip', low_memory=False)
         else:
             # Try to find any CSV in dataset directory
             csv_files = list(self.dataset_path.glob("*.csv"))
@@ -109,7 +109,16 @@ class CICIDS2017Loader(DatasetLoader):
                     f"No CSV files found in {self.dataset_path}. "
                     "Download CIC-IDS 2017 from: https://www.unb.ca/cic/datasets/ids-2017.html"
                 )
-            df = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
+            dfs = []
+            for f in csv_files:
+                try:
+                    dfs.append(pd.read_csv(f, encoding='utf-8', on_bad_lines='skip', low_memory=False))
+                except:
+                    try:
+                        dfs.append(pd.read_csv(f, encoding='latin-1', on_bad_lines='skip', low_memory=False))
+                    except Exception as e:
+                        print(f"⚠️ Skipping {f.name}: {e}")
+            df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
         
         # Clean column names
         df.columns = df.columns.str.strip()
@@ -208,7 +217,7 @@ class UNSWNB15Loader(DatasetLoader):
     def load(self, file_path: Optional[str] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Load UNSW-NB15 dataset"""
         if file_path:
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, encoding='utf-8', on_bad_lines='skip', low_memory=False)
         else:
             csv_files = list(self.dataset_path.glob("*.csv"))
             if not csv_files:
@@ -216,7 +225,21 @@ class UNSWNB15Loader(DatasetLoader):
                     f"No CSV files found in {self.dataset_path}. "
                     "Download UNSW-NB15 from: https://research.unsw.edu.au/projects/unsw-nb15-dataset"
                 )
-            df = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
+            # Prefer training/testing sets if available
+            train_test_files = [f for f in csv_files if 'training' in f.name.lower() or 'testing' in f.name.lower()]
+            files_to_load = train_test_files if train_test_files else csv_files[:2]  # Limit to avoid memory issues
+            
+            dfs = []
+            for f in files_to_load:
+                try:
+                    print(f"   Loading {f.name}...")
+                    dfs.append(pd.read_csv(f, encoding='utf-8', on_bad_lines='skip', low_memory=False))
+                except:
+                    try:
+                        dfs.append(pd.read_csv(f, encoding='latin-1', on_bad_lines='skip', low_memory=False))
+                    except Exception as e:
+                        print(f"⚠️ Skipping {f.name}: {e}")
+            df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
         
         # Clean column names
         df.columns = df.columns.str.strip().str.lower()

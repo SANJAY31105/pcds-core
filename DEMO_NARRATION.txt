@@ -1,0 +1,76 @@
+Hi, I'm Sanjay.
+
+This is PCDS – our Azure-powered predictive cyber defense system
+for small and medium businesses
+that can't afford a 50,000-dollar security stack.
+
+---
+
+This is the PCDS dashboard for a 20-employee clinic.
+
+You can see the overall risk score,
+active threats,
+and status in one place.
+
+Now I'll replay a real brute-force login attack.
+
+As the traffic hits our environment,
+PCDS analyzes it in real time
+and raises a high-risk alert for this server.
+
+---
+
+PCDS ingests telemetry using Azure Monitor
+and sends it to a five-model ML ensemble
+running on Azure Machine Learning with GPU acceleration.
+
+The ensemble combines XGBoost, Random Forest, and autoencoder models.
+
+It reaches 88 percent detection accuracy
+with under 3 percent false positives
+and under 2 milliseconds response time.
+
+---
+
+Most SMB owners are not security experts.
+
+So they use our AI Security Copilot,
+powered by Azure OpenAI.
+
+Here the owner asks:
+"What happened on my server last night, and do I need to worry?"
+
+The Copilot summarizes the attack in plain English,
+explains it was a credential-stuffing attempt,
+tells them PCDS already blocked it,
+and recommends simple next steps.
+
+---
+
+When a high-severity threat is predicted,
+PCDS automatically runs a response playbook
+using Azure Functions.
+
+You can see this node being isolated,
+the malicious IP blocked,
+and alerts sent to the team
+in under two milliseconds.
+
+No human in the loop.
+
+Every incident is mapped on a kill-chain timeline
+and tagged to the MITRE ATT&CK framework.
+
+The owner can export a PDF report
+for compliance with one click.
+
+---
+
+PCDS turns reactive security into predictive defense for SMBs.
+
+By combining Azure Monitor, Azure ML, Azure Functions,
+Azure Kubernetes Service, Azure SQL, and Azure OpenAI,
+we give small businesses enterprise-level protection
+starting at 99 dollars a month.
+
+Thank you.

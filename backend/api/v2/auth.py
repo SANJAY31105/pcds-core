@@ -82,11 +82,11 @@ async def login(credentials: LoginRequest):
     
     Validates credentials and returns JWT tokens
     """
-    # Get user by username
+    # Get user by email
     user = db_manager.execute_one("""
         SELECT id, username, email, password_hash, role, is_active, created_at, last_login
-        FROM users WHERE username = ?
-    """, (credentials.username,))
+        FROM users WHERE email = ?
+    """, (credentials.email,))
     
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")

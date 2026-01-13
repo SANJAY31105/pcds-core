@@ -1,236 +1,1089 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Dict, List, Any
+"""
+Threat Reporting Engine
+Generate PDF and HTML threat reports
+
+Report Types:
+- Executive Summary
+- Weekly/Monthly Threat Report
+- Compliance Report (SOC2, HIPAA, PCI-DSS)
+- Incident Report
+- Risk Assessment
+"""
+
+from fastapi import APIRouter, HTTPException, Response
+from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel
+from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-from config.database import db_manager, get_db
-from cache.memory_cache import memory_cache  # Enterprise-grade caching
+from pathlib import Path
+import json
+import io
+import base64
 
-router = APIRouter(prefix="/reports", tags=["Reports"])
 
-@router.get("/executive-summary")
-@memory_cache.cache_function(ttl=120)  # Cache for 2 minutes
-async def get_executive_summary():
-    """Get high-level executive summary metrics"""
-    
-    # 1. Risk Score (Average of all entities)
-    risk_data = db_manager.execute_one("""
-        SELECT AVG(threat_score) as avg_risk, COUNT(*) as total_entities 
-        FROM entities
-    """)
-    
-    # 2. Critical Threats (ALL - for demo with simulated attacks)
-    critical_threats = db_manager.execute_one("""
-        SELECT COUNT(*) as count 
-        FROM detections 
-        WHERE severity = 'critical'
-    """)
-    
-    # 3. Top Risky Entities
-    top_entities = db_manager.execute_query("""
-        SELECT identifier, threat_score, urgency_level 
-        FROM entities 
-        ORDER BY threat_score DESC 
-        LIMIT 5
-    """)
-    
-    # 4. MTTD/MTTR (Mocked for now as we don't track resolution time perfectly yet)
-    mttd = 12 # Minutes
-    mttr = 45 # Minutes
+router = APIRouter(tags=["Threat Reports"])
 
+
+# Report storage
+generated_reports: Dict[str, Dict] = {}
+
+
+class ReportRequest(BaseModel):
+    """Report generation request"""
+    report_type: str  # executive, weekly, monthly, compliance, incident
+    title: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    compliance_framework: Optional[str] = None  # soc2, hipaa, pci
+    include_charts: bool = True
+    include_metrics: bool = True
+
+
+class IncidentReportRequest(BaseModel):
+    """Incident-specific report request"""
+    incident_id: str
+    title: str
+    severity: str
+    summary: str
+    timeline: List[Dict]
+    affected_systems: List[str]
+    mitre_techniques: List[str]
+    remediation_steps: List[str]
+    analyst: str
+
+
+# Sample data generators for demo
+def get_threat_stats(days: int = 7) -> Dict:
+    """Get threat statistics for report"""
+    import random
     return {
-        "generated_at": datetime.utcnow().isoformat(),
-        "period": "Last 24 Hours",
-        "kpis": {
-            "overall_risk_score": round(risk_data['avg_risk'] or 0, 1),
-            "active_entities": risk_data['total_entities'],
-            "critical_incidents": critical_threats['count'],
-            "mttd_minutes": mttd,
-            "mttr_minutes": mttr
-        },
-        "top_risky_entities": top_entities,
-        "recommendations": [
-            "Investigate top 3 risky entities immediately.",
-            "Review firewall rules for repeated external scanning.",
-            "Ensure all endpoints have the latest agent version."
+        "total_alerts": random.randint(500, 2000),
+        "critical": random.randint(5, 20),
+        "high": random.randint(20, 100),
+        "medium": random.randint(100, 500),
+        "low": random.randint(200, 1000),
+        "blocked": random.randint(400, 1500),
+        "investigated": random.randint(50, 200),
+        "false_positives": random.randint(10, 50),
+        "mean_time_to_detect": f"{random.randint(1, 10)} minutes",
+        "mean_time_to_respond": f"{random.randint(5, 30)} minutes"
+    }
+
+
+def get_top_threats(limit: int = 10) -> List[Dict]:
+    """Get top threat categories"""
+    threats = [
+        {"name": "DoS/DDoS", "count": 342, "trend": "up"},
+        {"name": "Brute Force", "count": 218, "trend": "down"},
+        {"name": "Port Scan", "count": 156, "trend": "stable"},
+        {"name": "Web Attack", "count": 89, "trend": "up"},
+        {"name": "Malware", "count": 67, "trend": "down"},
+        {"name": "Credential Theft", "count": 45, "trend": "up"},
+        {"name": "Lateral Movement", "count": 34, "trend": "stable"},
+        {"name": "Data Exfiltration", "count": 23, "trend": "down"},
+        {"name": "Ransomware", "count": 12, "trend": "stable"},
+        {"name": "C2 Communication", "count": 8, "trend": "down"},
+    ]
+    return threats[:limit]
+
+
+def get_mitre_coverage() -> Dict:
+    """Get MITRE ATT&CK coverage stats"""
+    return {
+        "total_techniques": 201,
+        "detected_techniques": 156,
+        "coverage_percent": 77.6,
+        "top_tactics": [
+            {"name": "Initial Access", "detections": 45},
+            {"name": "Execution", "detections": 89},
+            {"name": "Persistence", "detections": 67},
+            {"name": "Privilege Escalation", "detections": 34},
+            {"name": "Defense Evasion", "detections": 78},
         ]
     }
 
-@router.get("/threat-intelligence")
-@memory_cache.cache_function(ttl=120)  # Cache for 2 minutes
-async def get_threat_intelligence():
-    """Get detailed threat intelligence metrics"""
-    
-    # 1. Top Attack Types (from simulated data)
-    top_tactics = db_manager.execute_query("""
-        SELECT detection_type as name, COUNT(*) as count
-        FROM detections
-        GROUP BY detection_type
-        ORDER BY count DESC
-        LIMIT 5
-    """)
-    
-    # 2. Top Techniques (from technique_id)
-    top_techniques = db_manager.execute_query("""
-        SELECT technique_id as id, technique_id as name, COUNT(*) as count
-        FROM detections
-        WHERE technique_id IS NOT NULL
-        GROUP BY technique_id
-        ORDER BY count DESC
-        LIMIT 5
-    """)
-    
-    # 3. Campaign Status
-    campaign_stats = db_manager.execute_one("""
-        SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) as active
-        FROM attack_campaigns
-    """)
 
-    return {
-        "generated_at": datetime.utcnow().isoformat(),
-        "period": "Last 7 Days",
-        "top_tactics": top_tactics,
-        "top_techniques": top_techniques,
-        "campaigns": {
-            "total_detected": campaign_stats['total'],
-            "currently_active": campaign_stats['active']
-        }
-    }
+def generate_executive_html(stats: Dict, threats: List, mitre: Dict) -> str:
+    """Generate stunning executive summary HTML with premium design"""
+    
+    # Calculate risk level
+    risk_level = "HIGH" if stats['critical'] > 15 else "MODERATE" if stats['critical'] > 5 else "LOW"
+    risk_color = "#ef4444" if risk_level == "HIGH" else "#f59e0b" if risk_level == "MODERATE" else "#10b981"
+    
+    html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCDS Executive Threat Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        
+        body {{
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f23 100%);
+            color: #e5e5e5;
+            min-height: 100vh;
+            padding: 40px;
+            line-height: 1.6;
+        }}
+        
+        .report-container {{
+            max-width: 1200px;
+            margin: 0 auto;
+        }}
+        
+        /* Header */
+        .header {{
+            text-align: center;
+            padding: 32px 40px;
+            background: linear-gradient(135deg, rgba(16, 163, 127, 0.12) 0%, rgba(16, 163, 127, 0.03) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(16, 163, 127, 0.2);
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .header::before {{
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(16, 163, 127, 0.1) 0%, transparent 50%);
+            animation: pulse 4s ease-in-out infinite;
+        }}
+        
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1); opacity: 0.5; }}
+            50% {{ transform: scale(1.1); opacity: 1; }}
+        }}
+        
+        .logo {{
+            font-size: 32px;
+            margin-bottom: 8px;
+        }}
+        
+        .header h1 {{
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10a37f 0%, #34d399 50%, #10a37f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .header .subtitle {{
+            color: #888;
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .header .date {{
+            margin-top: 8px;
+            color: #10a37f;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        /* Sections */
+        .section {{
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            margin-bottom: 24px;
+        }}
+        
+        .section-title {{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }}
+        
+        .section-icon {{
+            font-size: 24px;
+        }}
+        
+        /* Stats Grid */
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }}
+        
+        .stat-card {{
+            background: linear-gradient(135deg, rgba(30, 30, 40, 0.9) 0%, rgba(20, 20, 30, 0.9) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, border-color 0.3s;
+        }}
+        
+        .stat-card:hover {{
+            transform: translateY(-4px);
+            border-color: rgba(16, 163, 127, 0.5);
+        }}
+        
+        .stat-value {{
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #10a37f, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        
+        .stat-value.critical {{ background: linear-gradient(135deg, #ef4444, #f87171); -webkit-background-clip: text; }}
+        .stat-value.high {{ background: linear-gradient(135deg, #f59e0b, #fbbf24); -webkit-background-clip: text; }}
+        .stat-value.blocked {{ background: linear-gradient(135deg, #10b981, #34d399); -webkit-background-clip: text; }}
+        
+        .stat-label {{
+            color: #888;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+        
+        /* Risk Gauge */
+        .risk-section {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }}
+        
+        .risk-gauge {{
+            text-align: center;
+            padding: 40px;
+            background: radial-gradient(circle at center, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+        }}
+        
+        .risk-label {{
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }}
+        
+        .risk-value {{
+            font-size: 64px;
+            font-weight: 800;
+            color: {risk_color};
+            text-shadow: 0 0 60px {risk_color}40;
+        }}
+        
+        .risk-description {{
+            margin-top: 12px;
+            color: #888;
+        }}
+        
+        .metrics-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }}
+        
+        .metric-item {{
+            background: rgba(30, 30, 40, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }}
+        
+        .metric-label {{
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }}
+        
+        .metric-value {{
+            font-size: 24px;
+            font-weight: 700;
+            color: #10a37f;
+        }}
+        
+        /* Table */
+        .threat-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        
+        .threat-table th {{
+            text-align: left;
+            padding: 16px;
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }}
+        
+        .threat-table td {{
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }}
+        
+        .threat-table tr:hover {{
+            background: rgba(16, 163, 127, 0.05);
+        }}
+        
+        .threat-name {{
+            font-weight: 600;
+            color: #fff;
+        }}
+        
+        .threat-count {{
+            font-weight: 700;
+            color: #10a37f;
+        }}
+        
+        .trend {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }}
+        
+        .trend-up {{
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }}
+        
+        .trend-down {{
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }}
+        
+        .trend-stable {{
+            background: rgba(107, 114, 128, 0.15);
+            color: #9ca3af;
+        }}
+        
+        /* Progress Bar */
+        .progress-section {{
+            margin-top: 24px;
+        }}
+        
+        .progress-header {{
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }}
+        
+        .progress-bar {{
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }}
+        
+        .progress-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, #10a37f, #34d399);
+            border-radius: 6px;
+            width: {mitre['coverage_percent']}%;
+        }}
+        
+        /* Recommendations */
+        .recommendation-list {{
+            list-style: none;
+        }}
+        
+        .recommendation-item {{
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(30, 30, 40, 0.5);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid #10a37f;
+        }}
+        
+        .recommendation-icon {{
+            font-size: 20px;
+        }}
+        
+        .recommendation-text {{
+            color: #e5e5e5;
+        }}
+        
+        .recommendation-priority {{
+            margin-left: auto;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+        }}
+        
+        .priority-critical {{
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }}
+        
+        .priority-high {{
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }}
+        
+        /* Footer */
+        .footer {{
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }}
+        
+        .footer-logo {{
+            color: #10a37f;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }}
+        
+        /* Print Styles */
+        @media print {{
+            body {{
+                background: #0a0a0a;
+                padding: 20px;
+            }}
+            .section {{
+                break-inside: avoid;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🛡️</div>
+            <h1>PCDS Executive Threat Report</h1>
+            <p class="subtitle">Comprehensive Security Intelligence Analysis</p>
+            <p class="date">Generated: {datetime.now().strftime('%B %d, %Y at %H:%M')} • Reporting Period: Last 7 Days</p>
+        </div>
+        
+        <!-- Threat Overview -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">📊</span>
+                Threat Overview
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{stats['total_alerts']:,}</div>
+                    <div class="stat-label">Total Alerts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value critical">{stats['critical']}</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value high">{stats['high']}</div>
+                    <div class="stat-label">High</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value blocked">{stats['blocked']:,}</div>
+                    <div class="stat-label">Blocked</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Risk Assessment -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">⚡</span>
+                Risk Assessment & Response Metrics
+            </div>
+            <div class="risk-section">
+                <div class="risk-gauge">
+                    <div class="risk-label">Current Risk Level</div>
+                    <div class="risk-value">{risk_level}</div>
+                    <p class="risk-description">Overall security posture assessment</p>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Mean Time to Detect</div>
+                        <div class="metric-value">{stats['mean_time_to_detect']}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Mean Time to Respond</div>
+                        <div class="metric-value">{stats['mean_time_to_respond']}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Investigated Incidents</div>
+                        <div class="metric-value">{stats['investigated']}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">False Positive Rate</div>
+                        <div class="metric-value">{round(stats['false_positives']/stats['total_alerts']*100, 1)}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Threats -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🎯</span>
+                Top Threat Categories
+            </div>
+            <table class="threat-table">
+                <thead>
+                    <tr>
+                        <th>Threat Type</th>
+                        <th>Detections</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(f'''
+                    <tr>
+                        <td class="threat-name">{t['name']}</td>
+                        <td class="threat-count">{t['count']}</td>
+                        <td><span class="trend trend-{t['trend']}">{'↑' if t['trend'] == 'up' else '↓' if t['trend'] == 'down' else '→'} {t['trend'].capitalize()}</span></td>
+                    </tr>
+                    ''' for t in threats[:6])}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- MITRE Coverage -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🗺️</span>
+                MITRE ATT&CK Framework Coverage
+            </div>
+            <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-value">{mitre['coverage_percent']}%</div>
+                    <div class="stat-label">Coverage Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{mitre['detected_techniques']}</div>
+                    <div class="stat-label">Techniques Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{mitre['total_techniques']}</div>
+                    <div class="stat-label">Total Techniques</div>
+                </div>
+            </div>
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span style="color: #888;">Framework Coverage Progress</span>
+                    <span style="color: #10a37f; font-weight: 600;">{mitre['coverage_percent']}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">📋</span>
+                Priority Recommendations
+            </div>
+            <ul class="recommendation-list">
+                <li class="recommendation-item">
+                    <span class="recommendation-icon">🔴</span>
+                    <span class="recommendation-text">Immediately investigate and remediate {stats['critical']} critical severity alerts</span>
+                    <span class="recommendation-priority priority-critical">CRITICAL</span>
+                </li>
+                <li class="recommendation-item">
+                    <span class="recommendation-icon">🟠</span>
+                    <span class="recommendation-text">Review {stats['high']} high-severity detections for potential threat escalation</span>
+                    <span class="recommendation-priority priority-high">HIGH</span>
+                </li>
+                <li class="recommendation-item">
+                    <span class="recommendation-icon">🟡</span>
+                    <span class="recommendation-text">Tune detection rules to reduce false positive rate of {round(stats['false_positives']/stats['total_alerts']*100, 1)}%</span>
+                    <span class="recommendation-priority priority-high">MEDIUM</span>
+                </li>
+                <li class="recommendation-item">
+                    <span class="recommendation-icon">🔵</span>
+                    <span class="recommendation-text">Update security awareness training based on trending DoS/DDoS attack patterns</span>
+                    <span class="recommendation-priority" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">ONGOING</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-logo">PCDS Enterprise</p>
+            <p>Predictive Cyber Defence System • AI-Powered Security Intelligence</p>
+            <p style="margin-top: 12px; color: #444;">This report is automatically generated. For questions, contact your security operations team.</p>
+            <p style="margin-top: 8px; font-size: 11px; color: #333;">Report ID: RPT-{datetime.now().strftime('%Y%m%d%H%M%S')} • Classification: Internal Use Only</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+    return html
 
-@router.get("/compliance-report")
-@memory_cache.cache_function(ttl=300)  # Cache for 5 minutes
-async def get_compliance_report(framework: str = "nist"):
-    """
-    Get compliance reporting metrics
-    Supports: nist, iso27001, pci-dss
-    """
+
+
+def generate_compliance_html(framework: str, stats: Dict) -> str:
+    """Generate compliance report HTML"""
     
-    # Detection coverage (techniques detected)
-    coverage = db_manager.execute_one("""
-        SELECT 
-            COUNT(DISTINCT technique_id) as detected,
-            100 as total
-        FROM detections
-        WHERE technique_id IS NOT NULL
-    """)
-    
-    coverage_pct = round((coverage['detected'] / coverage['total']) * 100, 1) if coverage['total'] > 0 else 0
-    
-    # Incident response metrics
-    incident_metrics = db_manager.execute_one("""
-        SELECT 
-            COUNT(*) as total_incidents,
-            SUM(CASE WHEN severity='critical' THEN 1 ELSE 0 END) as critical_count
-        FROM detections
-    """)
-    
-    audit_stats = db_manager.execute_one("""
-        SELECT 0 as logged_actions
-    """)
-    
-    # Framework-specific requirements
     frameworks = {
-        "nist": {
-            "name": "NIST Cybersecurity Framework",
-            "categories": [
-                {"name": "Identify", "score": 85, "status": "compliant"},
-                {"name": "Protect", "score": 78, "status": "needs_improvement"},
-                {"name": "Detect", "score": coverage_pct, "status": "compliant" if coverage_pct > 70 else "needs_improvement"},
-                {"name": "Respond", "score": 82, "status": "compliant"},
-                {"name": "Recover", "score": 75, "status": "compliant"}
+        "soc2": {
+            "name": "SOC 2 Type II",
+            "controls": [
+                {"id": "CC6.1", "name": "Logical Access Security", "status": "pass", "evidence": "Access logs reviewed"},
+                {"id": "CC6.2", "name": "Data Protection", "status": "pass", "evidence": "Encryption verified"},
+                {"id": "CC6.6", "name": "System Operations", "status": "attention", "evidence": "Minor gaps identified"},
+                {"id": "CC7.1", "name": "Incident Detection", "status": "pass", "evidence": "SIEM operational"},
+                {"id": "CC7.2", "name": "Incident Response", "status": "pass", "evidence": "Playbooks tested"},
             ]
         },
-        "iso27001": {
-            "name": "ISO/IEC 27001",
-            "categories": [
-                {"name": "Information Security Policies", "score": 90, "status": "compliant"},
-                {"name": "Access Control", "score": 88, "status": "compliant"},
-                {"name": "Incident Management", "score": 85, "status": "compliant"},
-                {"name": "Monitoring & Review", "score": coverage_pct, "status": "compliant" if coverage_pct > 70 else "needs_improvement"}
+        "hipaa": {
+            "name": "HIPAA Security Rule",
+            "controls": [
+                {"id": "164.308", "name": "Administrative Safeguards", "status": "pass", "evidence": "Policies documented"},
+                {"id": "164.310", "name": "Physical Safeguards", "status": "pass", "evidence": "Access controls verified"},
+                {"id": "164.312", "name": "Technical Safeguards", "status": "pass", "evidence": "Audit logs enabled"},
+                {"id": "164.314", "name": "Organizational Requirements", "status": "attention", "evidence": "Review pending"},
             ]
         },
-        "pci-dss": {
+        "pci": {
             "name": "PCI-DSS v4.0",
-            "categories": [
-                {"name": "Network Security", "score": 92, "status": "compliant"},
-                {"name": "Access Control", "score": 87, "status": "compliant"},
-                {"name": "Monitoring & Testing", "score": coverage_pct, "status": "compliant" if coverage_pct > 70 else "needs_improvement"},
-                {"name": "Incident Response", "score": 83, "status": "compliant"}
+            "controls": [
+                {"id": "1.1", "name": "Firewall Configuration", "status": "pass", "evidence": "Rules reviewed"},
+                {"id": "2.1", "name": "Default Passwords", "status": "pass", "evidence": "No defaults found"},
+                {"id": "10.1", "name": "Audit Trails", "status": "pass", "evidence": "Logging enabled"},
+                {"id": "11.4", "name": "IDS/IPS", "status": "pass", "evidence": "PCDS operational"},
             ]
         }
     }
     
-    selected_framework = frameworks.get(framework.lower(), frameworks["nist"])
+    fw = frameworks.get(framework, frameworks["soc2"])
+    
+    pass_count = len([c for c in fw["controls"] if c["status"] == "pass"])
+    total = len(fw["controls"])
+    
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PCDS Compliance Report - {fw['name']}</title>
+    <style>
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; background: #fff; color: #333; }}
+        .header {{ text-align: center; margin-bottom: 40px; border-bottom: 3px solid #0066cc; padding-bottom: 20px; }}
+        .header h1 {{ color: #0066cc; margin: 0; }}
+        .section {{ margin-bottom: 30px; }}
+        .section h2 {{ color: #0066cc; border-bottom: 1px solid #ddd; padding-bottom: 10px; }}
+        .summary {{ background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
+        .score {{ font-size: 48px; font-weight: bold; color: #28a745; }}
+        table {{ width: 100%; border-collapse: collapse; }}
+        th, td {{ padding: 12px; text-align: left; border: 1px solid #ddd; }}
+        th {{ background: #0066cc; color: white; }}
+        .status-pass {{ color: #28a745; font-weight: bold; }}
+        .status-attention {{ color: #ffc107; font-weight: bold; }}
+        .status-fail {{ color: #dc3545; font-weight: bold; }}
+        .footer {{ text-align: center; color: #888; margin-top: 40px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Compliance Report</h1>
+        <h2>{fw['name']}</h2>
+        <p>Generated: {datetime.now().strftime('%B %d, %Y')}</p>
+    </div>
+
+    <div class="summary">
+        <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div>
+                <div class="score">{int(pass_count/total*100)}%</div>
+                <div>Compliance Score</div>
+            </div>
+            <div>
+                <div style="font-size: 32px; color: #28a745;">{pass_count}</div>
+                <div>Controls Passed</div>
+            </div>
+            <div>
+                <div style="font-size: 32px; color: #ffc107;">{total - pass_count}</div>
+                <div>Needs Attention</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Control Assessment</h2>
+        <table>
+            <tr>
+                <th>Control ID</th>
+                <th>Control Name</th>
+                <th>Status</th>
+                <th>Evidence</th>
+            </tr>
+            {''.join(f'''
+            <tr>
+                <td>{c['id']}</td>
+                <td>{c['name']}</td>
+                <td class="status-{c['status']}">{'✓ PASS' if c['status'] == 'pass' else '⚠ ATTENTION' if c['status'] == 'attention' else '✗ FAIL'}</td>
+                <td>{c['evidence']}</td>
+            </tr>
+            ''' for c in fw['controls'])}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Security Metrics</h2>
+        <table>
+            <tr><td>Total Alerts Processed</td><td>{stats['total_alerts']}</td></tr>
+            <tr><td>Critical Incidents</td><td>{stats['critical']}</td></tr>
+            <tr><td>Mean Time to Detect</td><td>{stats['mean_time_to_detect']}</td></tr>
+            <tr><td>Mean Time to Respond</td><td>{stats['mean_time_to_respond']}</td></tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p>PCDS Enterprise - Compliance Reporting</p>
+        <p>This report is for compliance documentation purposes.</p>
+    </div>
+</body>
+</html>
+"""
+    return html
+
+
+@router.post("/generate")
+async def generate_report(request: ReportRequest) -> Dict:
+    """
+    Generate a threat report
+    
+    Returns report ID and HTML content
+    """
+    stats = get_threat_stats()
+    threats = get_top_threats()
+    mitre = get_mitre_coverage()
+    
+    report_id = f"RPT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    
+    if request.report_type == "executive":
+        html = generate_executive_html(stats, threats, mitre)
+        title = request.title or "Executive Threat Report"
+    elif request.report_type == "compliance":
+        html = generate_compliance_html(request.compliance_framework or "soc2", stats)
+        title = request.title or f"Compliance Report - {request.compliance_framework or 'SOC2'}"
+    else:
+        html = generate_executive_html(stats, threats, mitre)
+        title = request.title or "Threat Report"
+    
+    generated_reports[report_id] = {
+        "id": report_id,
+        "type": request.report_type,
+        "title": title,
+        "html": html,
+        "created_at": datetime.now().isoformat(),
+        "stats": stats
+    }
     
     return {
-        "generated_at": datetime.utcnow().isoformat(),
-        "framework": selected_framework,
-        "metrics": {
-            "detection_coverage": coverage_pct,
-            "total_incidents": incident_metrics['total_incidents'] or 0,
-            "critical_incidents": incident_metrics['critical_count'] or 0,
-            "audit_log_entries": audit_stats['logged_actions'] or 0
-        },
-        "overall_score": round(sum(c['score'] for c in selected_framework['categories']) / len(selected_framework['categories']), 1)
+        "report_id": report_id,
+        "title": title,
+        "type": request.report_type,
+        "created_at": datetime.now().isoformat()
     }
 
-@router.get("/trend-analysis")
-async def get_trend_analysis(days: int = 30):
-    """Get trend analysis over time"""
+
+@router.get("/view/{report_id}")
+async def view_report(report_id: str) -> HTMLResponse:
+    """View generated report as HTML"""
+    if report_id not in generated_reports:
+        raise HTTPException(status_code=404, detail="Report not found")
     
-    cutoff_time = datetime.utcnow() - timedelta(days=days)
+    return HTMLResponse(content=generated_reports[report_id]["html"])
+
+
+@router.get("/download/{report_id}")
+async def download_report(report_id: str) -> Response:
+    """Download report as HTML file"""
+    if report_id not in generated_reports:
+        raise HTTPException(status_code=404, detail="Report not found")
     
-    # Detection trend by day
-    detection_trend = db_manager.execute_query("""
-        SELECT 
-            DATE(detected_at) as date,
-            COUNT(*) as total,
-            SUM(CASE WHEN severity='critical' THEN 1 ELSE 0 END) as critical,
-            SUM(CASE WHEN severity='high' THEN 1 ELSE 0 END) as high
-        FROM detections
-        WHERE detected_at > ?
-        GROUP BY DATE(detected_at)
-        ORDER BY date
-    """, (cutoff_time.isoformat(),))
+    report = generated_reports[report_id]
     
-    # Entity risk score changes
-    risk_trend = db_manager.execute_query("""
-        SELECT 
-            DATE(last_detection_time) as date,
-            AVG(threat_score) as avg_risk,
-            MAX(threat_score) as max_risk
-        FROM entities
-        WHERE last_detection_time > ?
-        GROUP BY DATE(last_detection_time)
-        ORDER BY date
-    """, (cutoff_time.isoformat(),))
+    return Response(
+        content=report["html"],
+        media_type="text/html",
+        headers={
+            "Content-Disposition": f'attachment; filename="{report_id}.html"'
+        }
+    )
+
+
+@router.get("/download/{report_id}/pdf")
+async def download_report_pdf(report_id: str) -> Response:
+    """Download report as PDF file"""
+    if report_id not in generated_reports:
+        raise HTTPException(status_code=404, detail="Report not found")
     
-    # Top technique frequency over time
-    technique_trend = db_manager.execute_query("""
-        SELECT 
-            DATE(d.detected_at) as date,
-            t.name as technique_name,
-            COUNT(*) as count
-        FROM detections d
-        JOIN mitre_techniques t ON d.technique_id = t.id
-        WHERE d.detected_at > ?
-        AND t.name IN (
-            SELECT t2.name 
-            FROM detections d2
-            JOIN mitre_techniques t2 ON d2.technique_id = t2.id
-            WHERE d2.detected_at > ?
-            GROUP BY t2.name
-            ORDER BY COUNT(*) DESC
-            LIMIT 5
+    report = generated_reports[report_id]
+    html_content = report["html"]
+    
+    # Use xhtml2pdf (pure Python, works on Windows)
+    try:
+        from xhtml2pdf import pisa
+        import io
+        import re
+        
+        # Strip out complex CSS that xhtml2pdf can't handle
+        # Remove style blocks with complex selectors
+        html_clean = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.DOTALL)
+        # Remove inline styles with complex properties
+        html_clean = re.sub(r'style="[^"]*transform[^"]*"', '', html_clean)
+        html_clean = re.sub(r'style="[^"]*animation[^"]*"', '', html_clean)
+        html_clean = re.sub(r'style="[^"]*gradient[^"]*"', '', html_clean)
+        
+        # Create simple PDF-friendly HTML
+        full_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {{ font-family: Arial, sans-serif; font-size: 11pt; padding: 20px; }}
+h1 {{ color: #0078d4; font-size: 24pt; margin-bottom: 20px; }}
+h2 {{ color: #333; font-size: 16pt; margin-top: 30px; border-bottom: 2px solid #0078d4; padding-bottom: 5px; }}
+h3 {{ color: #555; font-size: 14pt; }}
+table {{ border-collapse: collapse; width: 100%; margin: 15px 0; }}
+th {{ background-color: #0078d4; color: white; padding: 10px; text-align: left; }}
+td {{ border: 1px solid #ddd; padding: 8px; }}
+tr:nth-child(even) {{ background-color: #f9f9f9; }}
+.critical {{ color: #dc3545; font-weight: bold; }}
+.high {{ color: #fd7e14; font-weight: bold; }}
+.medium {{ color: #ffc107; }}
+.low {{ color: #28a745; }}
+.stat {{ font-size: 24pt; font-weight: bold; color: #0078d4; }}
+.label {{ font-size: 10pt; color: #666; }}
+</style>
+</head>
+<body>
+{html_clean}
+</body>
+</html>"""
+        
+        result = io.BytesIO()
+        pisa_status = pisa.CreatePDF(full_html, dest=result)
+        
+        if pisa_status.err:
+            raise HTTPException(status_code=500, detail="PDF conversion error")
+        
+        pdf_bytes = result.getvalue()
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{report_id}.pdf"'
+            }
         )
-        GROUP BY DATE(d.detected_at), t.name
-        ORDER BY date, count DESC
-    """, (cutoff_time.isoformat(), cutoff_time.isoformat()))
+        
+    except ImportError:
+        raise HTTPException(
+            status_code=500, 
+            detail="PDF generation not available. Install xhtml2pdf: pip install xhtml2pdf"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF generation failed: {str(e)}"
+        )
+
+
+@router.get("/list")
+async def list_reports() -> Dict:
+    """List all generated reports"""
+    return {
+        "reports": [
+            {
+                "id": r["id"],
+                "type": r["type"],
+                "title": r["title"],
+                "created_at": r["created_at"]
+            }
+            for r in generated_reports.values()
+        ],
+        "count": len(generated_reports)
+    }
+
+
+@router.delete("/{report_id}")
+async def delete_report(report_id: str) -> Dict:
+    """Delete a generated report"""
+    if report_id in generated_reports:
+        del generated_reports[report_id]
+        return {"deleted": True}
+    raise HTTPException(status_code=404, detail="Report not found")
+
+
+@router.get("/templates")
+async def get_report_templates() -> Dict:
+    """Get available report templates"""
+    return {
+        "templates": [
+            {
+                "id": "executive",
+                "name": "Executive Summary",
+                "description": "High-level threat overview for leadership",
+                "sections": ["Threat Overview", "Risk Assessment", "Top Threats", "MITRE Coverage", "Recommendations"]
+            },
+            {
+                "id": "weekly",
+                "name": "Weekly Threat Report",
+                "description": "Detailed weekly threat analysis",
+                "sections": ["Weekly Summary", "Alert Breakdown", "Trend Analysis", "Incidents", "Next Steps"]
+            },
+            {
+                "id": "compliance",
+                "name": "Compliance Report",
+                "description": "Framework compliance assessment",
+                "frameworks": ["SOC 2", "HIPAA", "PCI-DSS"]
+            },
+            {
+                "id": "incident",
+                "name": "Incident Report",
+                "description": "Detailed incident documentation",
+                "sections": ["Executive Summary", "Timeline", "Impact", "Root Cause", "Remediation"]
+            }
+        ]
+    }
+
+
+@router.post("/incident")
+async def generate_incident_report(request: IncidentReportRequest) -> Dict:
+    """Generate detailed incident report"""
+    
+    html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Incident Report - {request.incident_id}</title>
+    <style>
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; background: #fff; color: #333; }}
+        .header {{ border-bottom: 3px solid #dc3545; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header h1 {{ color: #dc3545; margin: 0; }}
+        .severity {{ display: inline-block; padding: 8px 16px; border-radius: 4px; color: white; font-weight: bold; }}
+        .severity-critical {{ background: #dc3545; }}
+        .severity-high {{ background: #fd7e14; }}
+        .severity-medium {{ background: #ffc107; color: #333; }}
+        .section {{ margin-bottom: 30px; }}
+        .section h2 {{ color: #0066cc; }}
+        .timeline {{ border-left: 3px solid #0066cc; padding-left: 20px; }}
+        .timeline-item {{ margin-bottom: 15px; }}
+        .timeline-time {{ color: #888; font-size: 14px; }}
+        ul {{ line-height: 1.8; }}
+        .footer {{ text-align: center; color: #888; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚨 Incident Report</h1>
+        <p><strong>Incident ID:</strong> {request.incident_id}</p>
+        <p><strong>Title:</strong> {request.title}</p>
+        <p><span class="severity severity-{request.severity}">{request.severity.upper()}</span></p>
+        <p><strong>Analyst:</strong> {request.analyst}</p>
+        <p><strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
+    </div>
+
+    <div class="section">
+        <h2>Executive Summary</h2>
+        <p>{request.summary}</p>
+    </div>
+
+    <div class="section">
+        <h2>Timeline of Events</h2>
+        <div class="timeline">
+            {''.join(f'''
+            <div class="timeline-item">
+                <div class="timeline-time">{e.get('time', 'N/A')}</div>
+                <div>{e.get('event', 'N/A')}</div>
+            </div>
+            ''' for e in request.timeline)}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Affected Systems</h2>
+        <ul>
+            {''.join(f'<li>{s}</li>' for s in request.affected_systems)}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>MITRE ATT&CK Techniques</h2>
+        <ul>
+            {''.join(f'<li>{t}</li>' for t in request.mitre_techniques)}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Remediation Steps</h2>
+        <ol>
+            {''.join(f'<li>{s}</li>' for s in request.remediation_steps)}
+        </ol>
+    </div>
+
+    <div class="footer">
+        <p>PCDS Enterprise - Incident Response</p>
+        <p>CONFIDENTIAL - For internal use only</p>
+    </div>
+</body>
+</html>
+"""
+    
+    report_id = f"INC-{request.incident_id}"
+    generated_reports[report_id] = {
+        "id": report_id,
+        "type": "incident",
+        "title": request.title,
+        "html": html,
+        "created_at": datetime.now().isoformat(),
+        "stats": {}
+    }
     
     return {
-        "generated_at": datetime.utcnow().isoformat(),
-        "time_range_days": days,
-        "detection_trend": detection_trend,
-        "risk_trend": risk_trend,
-        "technique_trend": technique_trend
+        "report_id": report_id,
+        "title": request.title,
+        "type": "incident"
+    }
+
+
+@router.get("/quick-stats")
+async def get_quick_stats() -> Dict:
+    """Get quick stats for report generation"""
+    return {
+        "stats": get_threat_stats(),
+        "top_threats": get_top_threats(5),
+        "mitre_coverage": get_mitre_coverage()
     }

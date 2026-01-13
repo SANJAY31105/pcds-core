@@ -41,7 +41,7 @@ class UserResponse(BaseModel):
 
 class LoginRequest(BaseModel):
     """Login request model"""
-    username: str
+    email: str
     password: str
     remember_me: bool = False
 

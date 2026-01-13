@@ -11,7 +11,7 @@ from config.database import EntityQueries, DetectionQueries
 from engine import scoring_engine
 from cache.redis_client import cache_client  # Redis caching
 
-router = APIRouter(prefix="/entities", tags=["entities"])
+router = APIRouter(tags=["entities"])
 
 
 @router.get("")

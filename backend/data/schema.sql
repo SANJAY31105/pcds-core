@@ -589,3 +589,75 @@ CREATE TABLE IF NOT EXISTS response_actions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_response_target ON response_actions(target_entity_id);
+
+-- ============================================
+-- ML Predictions Storage
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS ml_predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prediction_id VARCHAR(100) NOT NULL UNIQUE,
+    model_version VARCHAR(50) NOT NULL,
+    predicted_class INTEGER NOT NULL,
+    class_name VARCHAR(100) NOT NULL,
+    confidence DECIMAL(5,4) NOT NULL,
+    severity VARCHAR(20) DEFAULT 'medium',
+    mitre_technique VARCHAR(20),
+    mitre_tactic VARCHAR(50),
+    top_features TEXT,  -- JSON array of top contributing features
+    source_ip VARCHAR(45),
+    source_host VARCHAR(200),
+    prediction_timestamp TIMESTAMP NOT NULL,
+    
+    -- Ground truth (filled by analyst feedback)
+    ground_truth INTEGER,
+    is_tp BOOLEAN DEFAULT FALSE,
+    is_fp BOOLEAN DEFAULT FALSE,
+    reviewed_by VARCHAR(100),
+    reviewed_at TIMESTAMP,
+    review_notes TEXT,
+    
+    -- Audit
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_pred_id ON ml_predictions(prediction_id);
+CREATE INDEX IF NOT EXISTS idx_pred_class ON ml_predictions(predicted_class);
+CREATE INDEX IF NOT EXISTS idx_pred_host ON ml_predictions(source_host);
+CREATE INDEX IF NOT EXISTS idx_pred_severity ON ml_predictions(severity);
+CREATE INDEX IF NOT EXISTS idx_pred_pending ON ml_predictions(ground_truth) WHERE ground_truth IS NULL;
+CREATE INDEX IF NOT EXISTS idx_pred_time ON ml_predictions(prediction_timestamp DESC);
+
+-- ============================================
+-- ML Feedback History (Audit/Compliance)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS ml_feedback_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prediction_id VARCHAR(100) NOT NULL UNIQUE,
+    model_version VARCHAR(50) NOT NULL,
+    predicted_class INTEGER NOT NULL,
+    predicted_class_name VARCHAR(100) NOT NULL,
+    confidence DECIMAL(5,4) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    mitre_technique VARCHAR(20),
+    mitre_tactic VARCHAR(50),
+    source_ip VARCHAR(45),
+    source_host VARCHAR(200),
+    prediction_timestamp TIMESTAMP NOT NULL,
+    
+    -- Feedback
+    feedback_type VARCHAR(20) NOT NULL,  -- 'TP', 'FP', 'FN', 'UNKNOWN'
+    true_class INTEGER,
+    reviewed_by VARCHAR(100) NOT NULL,
+    reviewed_at TIMESTAMP NOT NULL,
+    review_notes TEXT,
+    
+    -- Audit
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_model ON ml_feedback_history(model_version);
+CREATE INDEX IF NOT EXISTS idx_feedback_reviewer ON ml_feedback_history(reviewed_by);
+CREATE INDEX IF NOT EXISTS idx_feedback_type ON ml_feedback_history(feedback_type);
+CREATE INDEX IF NOT EXISTS idx_feedback_time ON ml_feedback_history(reviewed_at DESC);

@@ -68,7 +68,7 @@ export default function InvestigationsPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="min-h-screen bg-[#0a0a0a] p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -94,14 +94,14 @@ export default function InvestigationsPage() {
             ) : (
                 <div className="space-y-2">
                     {investigations.map((inv) => (
-                        <div key={inv.id} className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-4 hover:bg-[#1a1a1a] transition-colors cursor-pointer">
+                        <div key={inv.id} className="bg-[#141414] rounded-xl border border-[#2a2a2a] p-4 hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-start gap-4">
                                     <AlertTriangle className="w-5 h-5 mt-0.5" style={{ color: getPriorityColor(inv.priority) }} />
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-sm font-medium text-white">{inv.title}</h3>
-                                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: `${getStatusColor(inv.status)}20`, color: getStatusColor(inv.status) }}>
+                                            <h3 className="text-sm font-medium text-white group-hover:text-[#10a37f] transition-colors">{inv.title}</h3>
+                                            <span className="text-xs px-2 py-0.5 rounded font-mono" style={{ backgroundColor: `${getStatusColor(inv.status)}20`, color: getStatusColor(inv.status) }}>
                                                 {inv.status.replace('_', ' ').toUpperCase()}
                                             </span>
                                         </div>
@@ -112,7 +112,7 @@ export default function InvestigationsPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-[#444]" />
+                                <ChevronRight className="w-4 h-4 text-[#444] group-hover:text-[#10a37f]" />
                             </div>
                         </div>
                     ))}

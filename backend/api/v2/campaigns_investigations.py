@@ -15,7 +15,7 @@ from engine import campaign_correlator
 campaigns_router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 # Investigations Router  
-investigations_router = APIRouter(prefix="/investigations", tags=["investigations"])
+investigations_router = APIRouter(tags=["investigations"])
 
 
 # ============================================

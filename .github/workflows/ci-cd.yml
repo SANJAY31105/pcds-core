@@ -1,7 +1,5 @@
-"""
-GitHub Actions CI/CD Pipeline for PCDS Enterprise
-Automated testing, building, and deployment
-"""
+# GitHub Actions CI/CD Pipeline for PCDS Enterprise
+# Automated testing, building, and deployment
 name: PCDS Enterprise CI/CD
 
 on:

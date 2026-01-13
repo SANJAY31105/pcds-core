@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "PCDS Enterprise - Network Detection & Response",
     description: "AI-powered Attack Signal Intelligence and Threat Hunting Platform",
+    icons: {
+        icon: '/favicon.svg',
+    },
 };
 
 export default function RootLayout({

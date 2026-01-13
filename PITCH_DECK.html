@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCDS | Imagine Cup 2026 Final Pitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@200;400;600;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg: #010205;
+            --azure: #0078d4;
+            --neon: #00f2ff;
+            --danger: #ff2d55;
+            --panel: rgba(10, 15, 25, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --glow: 0 0 30px rgba(0, 242, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 40px;
+        }
+
+        /* Moving Grid Background */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 60px 60px;
+            opacity: 0.1;
+            z-index: -1;
+            transform: perspective(1000px) rotateX(60deg) translateY(-200px) scale(2);
+            animation: moveGrid 30s linear infinite;
+        }
+
+        @keyframes moveGrid {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 0 1200px;
+            }
+        }
+
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(0, 120, 212, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* Glass Cards */
+        .glass {
+            background: var(--panel);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, var(--neon) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .product-shot {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 60px rgba(0, 242, 255, 0.1);
+            width: 100%;
+            transition: transform 0.5s ease;
+            background: #000;
+        }
+
+        .product-shot:hover {
+            transform: scale(1.01);
+        }
+
+        /* Placeholder for screenshots */
+        .screenshot-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1) 0%, rgba(0, 120, 212, 0.1) 100%);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Navigation Hint */
+        .nav-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.4;
+            font-size: 11px;
+            letter-spacing: 4px;
+            z-index: 50;
+            text-transform: uppercase;
+        }
+
+        .slide-num {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            font-family: 'Space Grotesk';
+            opacity: 0.2;
+            font-size: 14px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        /* Print styles */
+        @media print {
+            html {
+                scroll-snap-type: none;
+            }
+
+            body {
+                overflow: visible;
+            }
+
+            .slide {
+                page-break-after: always;
+                height: 100vh;
+            }
+
+            .slide:last-child {
+                page-break-after: avoid;
+            }
+
+            .nav-hint,
+            .ambient-glow,
+            .grid-overlay {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ambient-glow"></div>
+    <div class="grid-overlay"></div>
+    <div class="nav-hint">SCROLL TO PROTECT <i class="fa-solid fa-chevron-down ml-2 animate-bounce"></i></div>
+
+    <!-- SLIDE 1: HERO -->
+    <section class="slide" id="hero">
+        <div class="slide-num">01 / 08</div>
+        <div class="text-center z-10">
+            <div
+                class="mb-6 inline-block px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold tracking-[0.4em] uppercase">
+                Imagine Cup 2026 Submission
+            </div>
+            <h1 class="text-[140px] font-black tracking-tighter leading-none mb-4 text-gradient">PCDS</h1>
+            <p class="text-3xl font-light text-white/60 mb-12 tracking-wide">Predictive Cyber Defence System for SMBs
+            </p>
+            <div class="flex justify-center gap-6">
+                <div class="glass px-8 py-4 flex items-center gap-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg" width="24"
+                        alt="Azure">
+                    <span class="font-bold text-sm tracking-widest text-blue-400 uppercase">Powered by Microsoft
+                        Azure</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 2: THE INVISIBLE WAR -->
+    <section class="slide" id="problem">
+        <div class="slide-num">02 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 grid grid-cols-2 gap-16 items-center">
+            <div>
+                <p class="text-red-500 font-bold tracking-widest text-xs uppercase mb-4">The Problem</p>
+                <h2 class="text-6xl font-bold mb-8 leading-tight">Every 39 Seconds</h2>
+                <p class="text-xl text-white/60 leading-relaxed mb-8">
+                    SMBs are the "soft underbelly" of the economy—too small for enterprise security, too vital to fail.
+                </p>
+                <div class="space-y-6">
+                    <div class="flex gap-6 items-start">
+                        <div class="text-5xl font-bold text-red-500">60%</div>
+                        <p class="text-sm text-white/50 pt-2">of SMBs close within 6 months of a breach. For them,
+                            encryption is bankruptcy.</p>
+                    </div>
+                    <div class="flex gap-6 items-start">
+                        <div class="text-5xl font-bold text-red-500">$4.4M</div>
+                        <p class="text-sm text-white/50 pt-2">average cost of a data breach. Reactive tools only count
+                            losses <em>after</em> the damage.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <img src="screenshot_live_feed.png" class="product-shot" alt="PCDS Live Threat Feed">
+                <div
+                    class="absolute -bottom-4 -right-4 bg-red-600 px-4 py-2 text-[10px] font-mono font-bold uppercase tracking-widest shadow-xl rounded">
+                    Live Threat Feed
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 3: PROHIBITIVE PRICING -->
+    <section class="slide" id="pricing">
+        <div class="slide-num">03 / 08</div>
+        <div class="w-full max-w-6xl">
+            <span class="text-center block text-white/40 uppercase tracking-[0.3em] text-xs mb-4">Market Gap</span>
+            <h2 class="text-center text-5xl font-bold mb-16">Enterprise Security is a Luxury</h2>
+            <div class="grid grid-cols-4 gap-6">
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">Darktrace</p>
+                    <div class="text-4xl font-bold mb-2">$100k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Annual Subscription</p>
+                </div>
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">Vectra AI</p>
+                    <div class="text-4xl font-bold mb-2">$80k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Enterprise Entry</p>
+                </div>
+                <div class="glass p-8 text-center opacity-40">
+                    <p class="text-[10px] tracking-widest text-white/40 mb-4 uppercase">CrowdStrike</p>
+                    <div class="text-4xl font-bold mb-2">$50k+</div>
+                    <p class="text-[10px] uppercase text-white/30">Core Platform</p>
+                </div>
+                <div
+                    class="glass p-8 text-center border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_40px_rgba(0,242,255,0.1)]">
+                    <p class="text-[10px] tracking-widest text-cyan-400 font-bold mb-4 uppercase">🛡️ PCDS</p>
+                    <div class="text-4xl font-bold mb-2 text-cyan-400">$1,200</div>
+                    <p class="text-[10px] uppercase tracking-widest text-cyan-400">SMB Affordable</p>
+                </div>
+            </div>
+            <p class="text-center mt-12 text-white/60 font-medium text-2xl">"Democratizing elite cybersecurity for the
+                99%."</p>
+        </div>
+    </section>
+
+    <!-- SLIDE 4: ADAPTIVE DEFENSIVE INTELLIGENCE -->
+    <section class="slide" id="solution">
+        <div class="slide-num">04 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 grid grid-cols-2 gap-16 items-center">
+            <div>
+                <span class="text-cyan-400 font-bold tracking-[0.2em] text-xs uppercase">The Solution</span>
+                <h2 class="text-5xl font-bold mt-4 mb-8">Stop Attacks Before Execution</h2>
+                <div class="space-y-6">
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center text-cyan-400 text-xl">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">ML Ensemble Learning</h4>
+                            <p class="text-xs text-white/50">88.3% accuracy with XGBoost + RandomForest + Autoencoder
+                                models.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 text-xl">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">AI Security Copilot</h4>
+                            <p class="text-xs text-white/50">Azure OpenAI turns complex logs into plain English risk
+                                reports.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
+                        <div
+                            class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 text-xl">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Automated SOAR Playbooks</h4>
+                            <p class="text-xs text-white/50">Instant isolation of compromised nodes. No human delay.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <img src="screenshot_dashboard.png" class="product-shot" alt="PCDS Dashboard">
+                <div class="flex justify-between mt-6 px-2">
+                    <div class="flex gap-2 items-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span
+                            class="text-[10px] text-white/40 uppercase">Recon</span></div>
+                    <div class="flex gap-2 items-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span><span
+                            class="text-[10px] text-white/40 uppercase">Access</span></div>
+                    <div class="flex gap-2 items-center"><span class="w-2 h-2 rounded-full bg-red-400"></span><span
+                            class="text-[10px] text-white/40 uppercase">Exploit</span></div>
+                    <div class="flex gap-2 items-center"><span class="w-2 h-2 rounded-full bg-white"></span><span
+                            class="text-[10px] text-white/40 uppercase">Blocked</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 5: THE AZURE MOAT -->
+    <section class="slide" id="azure">
+        <div class="slide-num">05 / 08</div>
+        <div class="glass w-full max-w-6xl p-12">
+            <div class="grid grid-cols-2 gap-16 items-center">
+                <div>
+                    <img src="screenshot_copilot.png" class="product-shot" alt="PCDS AI Copilot">
+                </div>
+                <div>
+                    <h2 class="text-5xl font-bold mb-8">Built on Microsoft Azure</h2>
+                    <p class="text-xl text-white/60 mb-10 leading-relaxed">
+                        PCDS is a natural extension of Microsoft's security excellence.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <i class="fa-solid fa-comment-dots text-blue-400 text-2xl mt-1"></i>
+                            <div>
+                                <h4 class="font-bold">Azure OpenAI</h4>
+                                <p class="text-xs text-white/40">Natural language threat investigation for any business
+                                    owner.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <i class="fa-solid fa-server text-cyan-400 text-2xl mt-1"></i>
+                            <div>
+                                <h4 class="font-bold">Azure Blob Storage</h4>
+                                <p class="text-xs text-white/40">Secure storage for reports, audit logs, and ML model
+                                    artifacts.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <i class="fa-solid fa-network-wired text-purple-400 text-2xl mt-1"></i>
+                            <div>
+                                <h4 class="font-bold">Cloud-Native Architecture</h4>
+                                <p class="text-xs text-white/40">Deploys in hours, scales automatically with Azure
+                                    infrastructure.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 6: PERFORMANCE VALIDATED -->
+    <section class="slide" id="performance">
+        <div class="slide-num">06 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 grid grid-cols-2 gap-16 items-center">
+            <div>
+                <h2 class="text-5xl font-bold mb-8 text-gradient">Validated Performance</h2>
+                <div class="space-y-10">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold uppercase tracking-widest text-cyan-400">Detection Accuracy
+                                (CICIDS2017)</span>
+                            <span class="font-mono text-cyan-400">88.3%</span>
+                        </div>
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-cyan-500 w-[88.3%]"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold uppercase tracking-widest text-blue-400">Response
+                                Latency</span>
+                            <span class="font-mono text-blue-400">&lt;2ms</span>
+                        </div>
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 w-[98%]"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="stat-card">
+                            <div class="text-3xl font-bold text-cyan-400">&lt;3%</div>
+                            <p class="text-[10px] text-white/40 uppercase">False Positives</p>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-3xl font-bold text-white">5.3M+</div>
+                            <div class="text-[10px] text-white/40 uppercase">Trained Samples</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <img src="screenshot_mitre.png" class="product-shot" alt="PCDS MITRE ATT&CK Coverage">
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: ROADMAP -->
+    <section class="slide" id="roadmap">
+        <div class="slide-num">07 / 08</div>
+        <div class="glass w-full max-w-6xl p-12 text-center">
+            <h2 class="text-5xl font-bold mb-16">The Road to Global Protection</h2>
+            <div class="grid grid-cols-4 gap-4 relative">
+                <div class="absolute h-[1px] w-full bg-white/10 top-1/2 -translate-y-1/2 z-0"></div>
+                <div class="z-10 bg-[#0b0e14] p-8 border border-white/10 rounded-2xl relative">
+                    <p class="text-cyan-400 font-bold mb-2 text-xs">Q1 2026</p>
+                    <h4 class="font-bold mb-4">5 Partner Pilot</h4>
+                    <p class="text-[10px] text-white/40 leading-relaxed">SMB partners testing live forensics and ML
+                        detection.</p>
+                </div>
+                <div class="z-10 bg-[#0b0e14] p-8 border border-white/10 rounded-2xl relative">
+                    <p class="text-cyan-400 font-bold mb-2 text-xs">Q2 2026</p>
+                    <h4 class="font-bold mb-4">Beta Launch</h4>
+                    <p class="text-[10px] text-white/40 leading-relaxed">Open Beta for 50 enterprise customers on Azure.
+                    </p>
+                </div>
+                <div class="z-10 bg-[#0b0e14] p-8 border border-white/10 rounded-2xl relative">
+                    <p class="text-cyan-400 font-bold mb-2 text-xs">Q3 2026</p>
+                    <h4 class="font-bold mb-4">General Release</h4>
+                    <p class="text-[10px] text-white/40 leading-relaxed">Full GTM strategy with Azure Marketplace
+                        listing.</p>
+                </div>
+                <div class="z-10 bg-[#0b0e14] p-8 border border-white/10 rounded-2xl relative">
+                    <p class="text-cyan-400 font-bold mb-2 text-xs">YEAR 3</p>
+                    <h4 class="font-bold mb-4">$50M Target</h4>
+                    <p class="text-[10px] text-white/40 leading-relaxed">Protecting 200,000 SMB endpoints globally.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 8: THE ASK -->
+    <section class="slide" id="final">
+        <div class="slide-num">08 / 08</div>
+        <div class="glass max-w-5xl w-full p-16 text-center overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent">
+            </div>
+            <h2 class="text-8xl font-black mb-12 text-gradient tracking-tighter">The $100,000 Ask</h2>
+            <div class="grid grid-cols-3 gap-8 mb-16">
+                <div class="p-8 bg-white/5 border border-white/10 rounded-2xl">
+                    <h4 class="text-4xl font-bold text-cyan-400 mb-2">$60K</h4>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40">Azure Infrastructure</p>
+                </div>
+                <div class="p-8 bg-white/5 border border-white/10 rounded-2xl">
+                    <h4 class="text-4xl font-bold text-blue-400 mb-2">$20K</h4>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40">R&D Forensics</p>
+                </div>
+                <div class="p-8 bg-white/5 border border-white/10 rounded-2xl">
+                    <h4 class="text-4xl font-bold text-purple-400 mb-2">$20K</h4>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40">GTM & Compliance</p>
+                </div>
+            </div>
+            <p class="text-xl text-white/60 mb-12 italic">"Empowering us to secure the foundations of our global
+                economy."</p>
+            <div class="flex justify-center gap-6">
+                <div
+                    class="px-8 py-3 border border-white/10 rounded-full font-mono text-[10px] text-cyan-400 tracking-[5px]">
+                    SYSTEM_ONLINE</div>
+                <div
+                    class="px-8 py-3 border border-white/10 rounded-full font-mono text-[10px] text-blue-400 tracking-[5px]">
+                    SENTINEL_READY</div>
+            </div>
+            <div class="mt-8 text-white/30 text-xs">[Your Name] | [Your Email] | Imagine Cup 2026</div>
+        </div>
+    </section>
+
+    <script>
+        // Smooth snap navigation
+        document.addEventListener('keydown', (e) => {
+            const height = window.innerHeight;
+            const current = window.scrollY;
+            if (e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                window.scrollTo({ top: current + height, behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                window.scrollTo({ top: current - height, behavior: 'smooth' });
+            }
+        });
+
+        // Entrance animation observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-12');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.glass').forEach(el => {
+            el.classList.add('opacity-0', 'translate-y-12', 'duration-1000');
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

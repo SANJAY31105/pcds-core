@@ -130,8 +130,8 @@ export default function AlertsPage() {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${filter === f
-                                ? 'bg-[#10a37f] text-white'
-                                : 'bg-[#141414] border border-[#2a2a2a] text-[#a1a1a1] hover:text-white'
+                            ? 'bg-[#10a37f] text-white'
+                            : 'bg-[#141414] border border-[#2a2a2a] text-[#a1a1a1] hover:text-white'
                             }`}
                     >
                         {f}
@@ -164,7 +164,7 @@ export default function AlertsPage() {
                                 </div>
                                 <p className="text-sm text-[#666] mb-2">{alert.description}</p>
                                 <div className="flex items-center gap-4 text-xs text-[#666]">
-                                    <span>{new Date(alert.timestamp).toLocaleString()}</span>
+                                    <span suppressHydrationWarning>{new Date(alert.timestamp).toLocaleString()}</span>
                                     <span>•</span>
                                     <span>{alert.source}</span>
                                 </div>

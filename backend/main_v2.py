@@ -25,10 +25,24 @@ from api.v2.campaigns_investigations import campaigns_router, investigations_rou
 from api.v2.hunt_mitre import hunt_router, mitre_router
 from api.v2.dashboard import router as dashboard_router
 from api.v2.reports import router as reports_router
+from api.v2.model_shadow import router as model_shadow_router
 from api.v2.auth import router as auth_v2_router  # NEW: V2 Auth API
 from api.v2.kafka_api import router as kafka_router  # Kafka Enterprise API
 from api.v2.playbooks_api import router as playbooks_router  # Automated Playbooks
 from api.v2.response_api import router as response_router  # Decision Engine
+from api.v2.edr_api import router as edr_router  # EDR Agent API
+from api.v2.ml_dashboard import router as ml_dashboard_router  # ML Dashboard API
+from api.v2.threat_hunting import router as threat_hunting_router  # Threat Hunting API
+from api.v2.siem_integration import router as siem_router  # SIEM Integration API
+from api.v2.realtime_api import router as realtime_router  # Real-time Pipeline API
+from api.v2.xai_api import router as xai_router  # Explainable AI API
+from api.v2.adversarial_api import router as adversarial_router  # Adversarial Defense API
+from api.v2.soar_api import router as soar_router  # SOAR API
+from api.v2.network_anomaly_api import router as network_anomaly_router  # Network Anomaly API
+from api.v2.advanced_ml_api import router as advanced_ml_router  # Paper 4: Phishing, RL, CNN
+from api.v2.auth_api import router as auth_router  # Enterprise Authentication
+from api.v2.azure_ai_api import router as azure_ai_router  # Azure AI (Imagine Cup)
+from api.v2.azure_services import router as azure_services_router  # Azure Blob Storage (Imagine Cup)
 
 # ML Engine
 from ml.anomaly_detector import anomaly_detector
@@ -151,17 +165,31 @@ app.add_middleware(
 app.include_router(auth_v2_router, prefix=settings.API_V2_PREFIX)  # V2 Auth API
 
 # API v2 Routers
-app.include_router(entities_router, prefix=settings.API_V2_PREFIX)
-app.include_router(detections_router, prefix=settings.API_V2_PREFIX)
+app.include_router(entities_router, prefix="/api/v2/entities", tags=["Entities"])
+app.include_router(detections_router, prefix="/api/v2/detections", tags=["Detections"])
 app.include_router(campaigns_router, prefix=settings.API_V2_PREFIX)
-app.include_router(investigations_router, prefix=settings.API_V2_PREFIX)
+app.include_router(investigations_router, prefix="/api/v2/investigations", tags=["Investigations"])
 app.include_router(hunt_router, prefix=settings.API_V2_PREFIX)
 app.include_router(mitre_router, prefix=settings.API_V2_PREFIX)
-app.include_router(dashboard_router, prefix=settings.API_V2_PREFIX)
-app.include_router(reports_router, prefix=settings.API_V2_PREFIX)
+app.include_router(dashboard_router, prefix="/api/v2/dashboard", tags=["Dashboard"])
+app.include_router(reports_router, prefix="/api/v2/reports", tags=["Reports"])
 app.include_router(kafka_router, prefix=settings.API_V2_PREFIX)  # Kafka Enterprise API
-app.include_router(playbooks_router, prefix=settings.API_V2_PREFIX)  # Automated Playbooks
+app.include_router(playbooks_router, prefix="/api/v2/playbooks", tags=["Playbooks"])  # Automated Playbooks
 app.include_router(response_router, prefix=settings.API_V2_PREFIX)  # Decision Engine
+app.include_router(edr_router, prefix="/api/v2/edr", tags=["EDR"])  # EDR Agent API
+app.include_router(ml_dashboard_router, prefix="/api/v2/ml", tags=["ML Dashboard"])  # ML Dashboard API
+app.include_router(threat_hunting_router, prefix="/api/v2/hunt", tags=["Threat Hunting"])  # Threat Hunting API
+app.include_router(siem_router, prefix="/api/v2/siem", tags=["SIEM"])  # SIEM Integration API
+app.include_router(model_shadow_router, prefix="/api/v2/ml/shadow", tags=["ML Shadow Mode"]) # ML Shadow Mode API
+app.include_router(realtime_router, prefix="/api/v2/realtime", tags=["Real-time Pipeline"])  # Real-time ML Pipeline
+app.include_router(xai_router, prefix="/api/v2", tags=["Explainable AI"])  # Explainable AI
+app.include_router(adversarial_router, prefix="/api/v2", tags=["Adversarial Defense"])  # Adversarial Defense
+app.include_router(soar_router, prefix="/api/v2", tags=["SOAR"])  # Security Orchestration
+app.include_router(network_anomaly_router, prefix="/api/v2", tags=["Network Anomaly"])  # Network Anomaly Detection
+app.include_router(advanced_ml_router, prefix="/api/v2", tags=["Advanced ML"])  # Paper 4: Phishing, RL, CNN
+app.include_router(auth_router, prefix="/api/v2", tags=["Authentication"])  # Enterprise Auth
+app.include_router(azure_ai_router, prefix="/api/v2/azure", tags=["Azure AI"])  # Imagine Cup - Microsoft AI
+app.include_router(azure_services_router)  # Azure Blob Storage - Imagine Cup 2nd service
 
 
 # ============================================

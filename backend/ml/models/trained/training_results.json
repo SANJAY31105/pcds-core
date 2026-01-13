@@ -1,0 +1,20 @@
+{
+  "samples": 2952835,
+  "features": 38,
+  "architecture": "nuclear_gpu_residual",
+  "training_mode": "100% GPU",
+  "training_time_minutes": 2.7,
+  "best_epoch": 23,
+  "accuracy": 0.8833934168350077,
+  "precision": 0.9065537064091977,
+  "recall": 0.6666374729958545,
+  "f1": 0.768301627783348,
+  "fpr": 0.02806840974297455,
+  "fnr": 0.3333625270041455,
+  "confusion_matrix": {
+    "tn": 407528,
+    "fp": 11769,
+    "fn": 57095,
+    "tp": 114175
+  }
+}

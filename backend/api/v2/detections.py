@@ -19,7 +19,7 @@ except ImportError:
     ML_ENGINE_AVAILABLE = False
     print("⚠️ ML Engine v3.0 not available")
 
-router = APIRouter(prefix="/detections", tags=["detections"])
+router = APIRouter(tags=["detections"])
 
 
 @router.get("")
