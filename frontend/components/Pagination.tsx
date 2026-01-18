@@ -7,7 +7,7 @@ interface PaginationProps {
     totalPages: number;
     totalItems: number;
     itemsPerPage: number;
-    onPageChange: (page: number);
+    onPageChange: (page: number) => void;
     onItemsPerPageChange?: (itemsPerPage: number) => void;
 }
 
@@ -89,8 +89,8 @@ export function Pagination({
                         key={page}
                         onClick={() => onPageChange(page)}
                         className={`px-3 py-2 rounded-lg border transition-colors ${page === currentPage
-                                ? 'bg-cyan-500 border-cyan-500 text-white'
-                                : 'border-slate-700 bg-slate-800 text-white hover:bg-slate-700'
+                            ? 'bg-cyan-500 border-cyan-500 text-white'
+                            : 'border-slate-700 bg-slate-800 text-white hover:bg-slate-700'
                             }`}
                     >
                         {page}

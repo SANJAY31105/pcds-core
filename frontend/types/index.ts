@@ -1,5 +1,6 @@
 // TypeScript types for PCDS Enterprise
 
+export type ThreatSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 export interface WebSocketMessage {
     type: string;
     data: any;

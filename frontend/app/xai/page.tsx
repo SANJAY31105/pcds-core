@@ -51,10 +51,10 @@ export default function XAIPage() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.importance) {
-                    const importance = Object.entries(data.importance).map(([feature, value]) => ({
+                    const importance: FeatureImportance[] = Object.entries(data.importance).map(([feature, value]) => ({
                         feature,
                         importance: Math.abs(value as number),
-                        direction: ((value as number) >= 0 ? 'positive' : 'negative') as const
+                        direction: ((value as number) >= 0 ? 'positive' : 'negative') as 'positive' | 'negative'
                     })).sort((a, b) => b.importance - a.importance).slice(0, 15);
                     setGlobalImportance(importance);
                 }

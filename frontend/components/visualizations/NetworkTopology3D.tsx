@@ -16,7 +16,9 @@ interface NetworkNode extends d3.SimulationNodeDatum {
     threats: ThreatDetection[];
 }
 
-interface NetworkLink extends d3.SimulationLinkDatum<NetworkNode> {
+interface NetworkLink {
+    source: string | NetworkNode;
+    target: string | NetworkNode;
     value: number;
     isThreat: boolean;
 }
