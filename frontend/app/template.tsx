@@ -19,9 +19,11 @@ export default function AppLayout({
 }) {
     const pathname = usePathname();
     const isLoginPage = pathname === '/login';
+    const isLandingPage = pathname === '/landing';
     const [collapsed, setCollapsed] = useState(false);
 
-    if (isLoginPage) {
+    // Skip dashboard layout for login and landing pages
+    if (isLoginPage || isLandingPage) {
         return <>{children}</>;
     }
 

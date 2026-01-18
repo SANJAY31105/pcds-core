@@ -1,0 +1,14 @@
+# PCDS Network Agent Dependencies
+
+# Core
+scapy>=2.5.0          # Packet capture and parsing
+numpy>=1.21.0         # Numerical operations
+requests>=2.28.0      # HTTP client for API
+aiohttp>=3.8.0        # Async HTTP client
+
+# Optional but recommended
+psutil>=5.9.0         # System monitoring
+python-dotenv>=1.0.0  # Environment variable loading
+
+# Packaging
+pyinstaller>=5.6.0    # Create standalone executable
