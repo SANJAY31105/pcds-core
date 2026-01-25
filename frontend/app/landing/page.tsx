@@ -7,8 +7,20 @@ export default function LandingPage() {
     const [email, setEmail] = useState('')
     const [submitted, setSubmitted] = useState(false)
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/leads`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+        } catch (err) {
+            // Ignore errors for demo, still show success to user
+            console.error(err);
+        }
+
         setSubmitted(true)
     }
 
@@ -17,7 +29,7 @@ export default function LandingPage() {
 
             {/* Navigation */}
             <nav className="sticky top-0 backdrop-blur-md border-b border-white/5 z-50">
-                <div className="max-w-[1200px] mx-auto px-6 py-4 flex justify-between items-center">
+                <div className="max-w-[1200px] mx-auto px-4 py-3 md:px-6 md:py-4 flex justify-between items-center">
                     <div className="text-xl font-semibold flex items-center gap-2">
                         <span>🛡️</span> PCDS
                     </div>
@@ -27,7 +39,7 @@ export default function LandingPage() {
                         <a href="#about" className="hover:text-white transition-colors cursor-pointer">About</a>
                     </div>
                     <Link
-                        href="/"
+                        href="/login"
                         className="px-5 py-2 rounded-lg font-semibold text-[#020617]"
                         style={{
                             background: 'linear-gradient(180deg, #fde68a, #f5c16c)',
@@ -41,18 +53,6 @@ export default function LandingPage() {
 
             {/* Hero Section */}
             <section className="max-w-[1200px] mx-auto px-6 py-24 text-center">
-                {/* Award Badge */}
-                <span
-                    className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-2xl"
-                    style={{
-                        background: 'rgba(17, 24, 39, 0.65)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)'
-                    }}
-                >
-                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <span className="text-sm">Imagine Cup 2026 Finalist</span>
-                </span>
 
                 {/* Headline */}
                 <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -69,8 +69,8 @@ export default function LandingPage() {
                 {/* CTA Buttons */}
                 <div className="flex flex-col md:flex-row gap-4 justify-center mb-20">
                     <Link
-                        href="/"
-                        className="px-8 py-4 rounded-xl font-semibold text-[#020617] text-lg"
+                        href="/get-started"
+                        className="px-6 py-3 md:px-8 md:py-4 rounded-xl font-semibold text-[#020617] text-lg"
                         style={{
                             background: 'linear-gradient(180deg, #fde68a, #f5c16c)',
                             boxShadow: '0 14px 40px rgba(245, 193, 108, 0.35)'
@@ -78,9 +78,9 @@ export default function LandingPage() {
                     >
                         Try it free for 14 days →
                     </Link>
-                    <button className="px-8 py-4 rounded-xl border border-white/15 font-semibold text-lg hover:bg-white/5 transition-colors">
+                    <Link href="/live" className="px-6 py-3 md:px-8 md:py-4 rounded-xl border border-white/15 font-semibold text-lg hover:bg-white/5 transition-colors flex items-center justify-center">
                         See it in action
-                    </button>
+                    </Link>
                 </div>
 
                 {/* Stats Grid */}
@@ -183,24 +183,6 @@ export default function LandingPage() {
                             <div className="text-gray-400 text-sm leading-relaxed">{feature.desc}</div>
                         </div>
                     ))}
-                </div>
-            </section>
-
-            {/* Social Proof */}
-            <section className="max-w-[1200px] mx-auto px-6 py-16">
-                <div
-                    className="p-10 rounded-2xl text-center"
-                    style={{
-                        background: 'rgba(17, 24, 39, 0.65)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)'
-                    }}
-                >
-                    <p className="text-2xl text-gray-300 italic mb-6">
-                        "We replaced a ₹40 lakh/year SIEM with PCDS. Detection is faster,
-                        alerts are cleaner, and my team actually gets sleep now."
-                    </p>
-                    <p className="text-white font-semibold">— Security Lead, 200-person fintech</p>
                 </div>
             </section>
 
@@ -347,7 +329,7 @@ export default function LandingPage() {
                         </form>
                     ) : (
                         <div className="text-xl text-green-400 py-4">
-                            ✓ Check your inbox. Let's get you protected.
+                            ✓ Thanks! Email captured (Demo: no real email sent).
                         </div>
                     )}
                 </div>

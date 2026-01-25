@@ -44,11 +44,11 @@ export default function LiveFeedPage() {
     const toggleRealMonitoring = async () => {
         try {
             if (!monitoring) {
-                await fetch('http://localhost:8000/api/v2/network/start', { method: 'POST' });
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/network/start`, { method: 'POST' });
                 setMonitoring(true);
                 setRealMode(true);
             } else {
-                await fetch('http://localhost:8000/api/v2/network/stop', { method: 'POST' });
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/network/stop`, { method: 'POST' });
                 setMonitoring(false);
             }
         } catch (error) {
@@ -62,9 +62,9 @@ export default function LiveFeedPage() {
 
         try {
             const [statsRes, eventsRes, connectionsRes] = await Promise.all([
-                fetch('http://localhost:8000/api/v2/network/stats'),
-                fetch('http://localhost:8000/api/v2/network/events?limit=50'),
-                fetch('http://localhost:8000/api/v2/network/connections?limit=20')
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/network/stats`),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/network/events?limit=50`),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/network/connections?limit=20`)
             ]);
 
             const statsData = await statsRes.json();

@@ -3,7 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { WebSocketMessage } from '@/types';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
+const getWsUrl = () => {
+    if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    return apiBase.replace(/^http/, 'ws') + '/ws';
+};
+
+const WS_URL = getWsUrl();
 
 export function useWebSocket(onMessage?: (message: WebSocketMessage) => void) {
     const [isConnected, setIsConnected] = useState(false);

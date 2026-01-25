@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from './supabase';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
     user_id: string;
@@ -15,130 +17,101 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<boolean>;
+    signup: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
     getAccessToken: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = 'http://localhost:8000/api/v2';
-const TOKEN_REFRESH_INTERVAL = 13 * 60 * 1000; // 13 minutes (before 15 min expiry)
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
+    // Convert Supabase user to our User format
+    const mapSupabaseUser = (supabaseUser: SupabaseUser | null): User | null => {
+        if (!supabaseUser) return null;
+        return {
+            user_id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            name: supabaseUser.email?.split('@')[0] || 'User',
+            role: 'user'
+        };
+    };
+
     const getAccessToken = useCallback(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('access_token');
-        }
-        return null;
-    }, []);
-
-    const refreshToken = useCallback(async () => {
-        try {
-            const res = await fetch(`${API_BASE}/auth/refresh`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('access_token', data.access_token);
-                return true;
-            }
-            return false;
-        } catch {
-            return false;
-        }
-    }, []);
-
-    const checkAuth = useCallback(async () => {
-        const token = getAccessToken();
-        if (!token) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API_BASE}/auth/me`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const userData = await res.json();
-                setUser(userData);
-            } else if (res.status === 401) {
-                // Try to refresh
-                const refreshed = await refreshToken();
-                if (refreshed) {
-                    await checkAuth();
-                    return;
-                }
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('user');
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [getAccessToken, refreshToken]);
+        return session?.access_token || null;
+    }, [session]);
 
     // Check auth on mount
     useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
+        // Get initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUser(mapSupabaseUser(session?.user || null));
+            setIsLoading(false);
+        });
 
-    // Silent refresh timer
-    useEffect(() => {
-        if (!user) return;
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(mapSupabaseUser(session?.user || null));
+            setIsLoading(false);
+        });
 
-        const interval = setInterval(async () => {
-            await refreshToken();
-        }, TOKEN_REFRESH_INTERVAL);
-
-        return () => clearInterval(interval);
-    }, [user, refreshToken]);
+        return () => subscription.unsubscribe();
+    }, []);
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const res = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ email, password })
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                setUser(data.user);
+            if (error) {
+                console.error('Login error:', error.message);
+                return false;
+            }
+
+            if (data.user) {
+                setUser(mapSupabaseUser(data.user));
+                setSession(data.session);
                 return true;
             }
             return false;
-        } catch {
+        } catch (e) {
+            console.error('Login exception:', e);
             return false;
         }
     };
 
-    const logout = async () => {
-        const token = getAccessToken();
+    const signup = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         try {
-            await fetch(`${API_BASE}/auth/logout`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                credentials: 'include'
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password
             });
-        } catch {
-            // Ignore errors
-        }
 
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
+            if (error) {
+                return { success: false, error: error.message };
+            }
+
+            if (data.user) {
+                return { success: true };
+            }
+            return { success: false, error: 'Unknown error' };
+        } catch (e: any) {
+            return { success: false, error: e.message };
+        }
+    };
+
+    const logout = async () => {
+        await supabase.auth.signOut();
         setUser(null);
+        setSession(null);
         router.push('/login');
     };
 
@@ -148,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAuthenticated: !!user,
             isLoading,
             login,
+            signup,
             logout,
             getAccessToken
         }}>

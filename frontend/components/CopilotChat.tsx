@@ -20,7 +20,7 @@ export default function CopilotChat({ context, placeholder = "Ask about threats,
         {
             id: '0',
             role: 'assistant',
-            content: "I'm your PCDS Security Co-pilot powered by Azure OpenAI. Ask me about threats, detections, or how to respond to incidents.",
+            content: "⚠️ The Security Co-pilot is currently disabled by the administrator to conserve API credits. Please contact your system admin to enable it.",
             timestamp: new Date()
         }
     ]);
@@ -37,52 +37,8 @@ export default function CopilotChat({ context, placeholder = "Ask about threats,
     }, [messages]);
 
     const sendMessage = async () => {
-        if (!input.trim() || loading) return;
-
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: input.trim(),
-            timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, userMessage]);
-        setInput('');
-        setLoading(true);
-
-        try {
-            const response = await fetch('http://localhost:8000/api/v2/azure/copilot', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: userMessage.content,
-                    context: context || {}
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to get response');
-
-            const data = await response.json();
-
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: data.response,
-                timestamp: new Date()
-            };
-
-            setMessages(prev => [...prev, assistantMessage]);
-        } catch (err) {
-            const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: "I'm having trouble connecting. Please try again.",
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setLoading(false);
-        }
+        // Disabled
+        return;
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -122,8 +78,8 @@ export default function CopilotChat({ context, placeholder = "Ask about threats,
                         className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'assistant'
-                                ? 'bg-[#10a37f]/20'
-                                : 'bg-[#3b82f6]/20'
+                            ? 'bg-[#10a37f]/20'
+                            : 'bg-[#3b82f6]/20'
                             }`}>
                             {message.role === 'assistant'
                                 ? <Bot className="w-4 h-4 text-[#10a37f]" />
@@ -131,8 +87,8 @@ export default function CopilotChat({ context, placeholder = "Ask about threats,
                             }
                         </div>
                         <div className={`max-w-[80%] rounded-lg p-3 ${message.role === 'assistant'
-                                ? 'bg-[#1a1a1a] text-[#e5e5e5]'
-                                : 'bg-[#10a37f] text-white'
+                            ? 'bg-[#1a1a1a] text-[#e5e5e5]'
+                            : 'bg-[#10a37f] text-white'
                             }`}>
                             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         </div>
@@ -178,13 +134,13 @@ export default function CopilotChat({ context, placeholder = "Ask about threats,
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder={placeholder}
-                        disabled={loading}
-                        className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-2.5 text-sm text-white placeholder-[#666] focus:outline-none focus:border-[#10a37f] disabled:opacity-50"
+                        placeholder={"Chat is disabled"}
+                        disabled={true}
+                        className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-2.5 text-sm text-white placeholder-[#666] focus:outline-none focus:border-[#10a37f] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                         onClick={sendMessage}
-                        disabled={!input.trim() || loading}
+                        disabled={true}
                         className="px-4 py-2.5 bg-[#10a37f] hover:bg-[#0d8a6a] disabled:bg-[#333] disabled:cursor-not-allowed rounded-lg text-white transition-colors"
                     >
                         <Send className="w-4 h-4" />

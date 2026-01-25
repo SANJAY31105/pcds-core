@@ -156,8 +156,8 @@ export default function GlobalSearch() {
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-[#666] hover:text-[#a1a1a1] hover:border-[#333] transition-colors"
             >
                 <Search className="w-4 h-4" />
-                <span>Search</span>
-                <kbd className="ml-2 px-1.5 py-0.5 bg-[#0a0a0a] rounded text-xs">⌘K</kbd>
+                <span className="hidden md:inline">Search</span>
+                <kbd className="hidden md:inline ml-2 px-1.5 py-0.5 bg-[#0a0a0a] rounded text-xs">⌘K</kbd>
             </button>
         );
     }

@@ -2,43 +2,44 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Shield, Lock, Mail, AlertCircle, UserPlus } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isSignup, setIsSignup] = useState(false);
     const router = useRouter();
+    const { login, signup } = useAuth();
 
-    const API_BASE = 'http://localhost:8000/api/v2';
-
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_BASE}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setError(data.detail || 'Login failed');
-                setLoading(false);
-                return;
+            if (isSignup) {
+                const result = await signup(email, password);
+                if (result.success) {
+                    setSuccess('Account created! Check your email to verify, then sign in.');
+                    setIsSignup(false);
+                } else {
+                    setError(result.error || 'Signup failed');
+                }
+            } else {
+                const success = await login(email, password);
+                if (success) {
+                    router.push('/dashboard');
+                } else {
+                    setError('Invalid email or password');
+                }
             }
-
-            localStorage.setItem('access_token', data.access_token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            router.push('/');
         } catch (err) {
-            setError('Connection error. Is the backend running?');
+            setError('Connection error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -56,13 +57,36 @@ export default function LoginPage() {
                     <p className="text-[#888] text-sm mt-1">Predictive Cyber Defense System</p>
                 </div>
 
-                {/* Login Form */}
+                {/* Login/Signup Form */}
                 <div className="bg-[#141414] rounded-lg border border-[#2a2a2a] p-6">
-                    <form onSubmit={handleLogin} className="space-y-5">
+                    {/* Tab Toggle */}
+                    <div className="flex mb-6 bg-[#0a0a0a] rounded-lg p-1">
+                        <button
+                            onClick={() => { setIsSignup(false); setError(''); setSuccess(''); }}
+                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${!isSignup ? 'bg-[#10a37f] text-white' : 'text-[#666] hover:text-white'}`}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            onClick={() => { setIsSignup(true); setError(''); setSuccess(''); }}
+                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${isSignup ? 'bg-[#10a37f] text-white' : 'text-[#666] hover:text-white'}`}
+                        >
+                            Sign Up
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         {error && (
                             <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
                                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                 {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg text-sm">
+                                <UserPlus className="w-4 h-4 flex-shrink-0" />
+                                {success}
                             </div>
                         )}
 
@@ -76,7 +100,7 @@ export default function LoginPage() {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@pcds.com"
+                                    placeholder="you@example.com"
                                     className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-[#555] focus:outline-none focus:border-[#10a37f] transition-colors"
                                     required
                                 />
@@ -85,7 +109,7 @@ export default function LoginPage() {
 
                         <div>
                             <label className="block text-sm text-[#888] mb-2">
-                                Password
+                                Password {isSignup && <span className="text-[#555]">(min 6 characters)</span>}
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666]" />
@@ -94,6 +118,7 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    minLength={isSignup ? 6 : undefined}
                                     className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-[#555] focus:outline-none focus:border-[#10a37f] transition-colors"
                                     required
                                 />
@@ -111,36 +136,19 @@ export default function LoginPage() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                    Signing in...
+                                    {isSignup ? 'Creating account...' : 'Signing in...'}
                                 </span>
-                            ) : 'Sign In'}
+                            ) : (
+                                isSignup ? 'Create Account' : 'Sign In'
+                            )}
                         </button>
                     </form>
-
-                    {/* Demo Credentials */}
-                    <div className="mt-6 pt-5 border-t border-[#2a2a2a]">
-                        <p className="text-[#666] text-xs text-center mb-3">Quick Access</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                onClick={() => { setEmail('admin@pcds.com'); setPassword('admin123'); }}
-                                className="bg-[#1a1a1a] hover:bg-[#222] text-[#888] hover:text-white text-xs py-2 px-3 rounded-lg transition-colors border border-[#2a2a2a]"
-                            >
-                                👑 Demo Admin
-                            </button>
-                            <button
-                                onClick={() => { setEmail('analyst@pcds.com'); setPassword('analyst123'); }}
-                                className="bg-[#1a1a1a] hover:bg-[#222] text-[#888] hover:text-white text-xs py-2 px-3 rounded-lg transition-colors border border-[#2a2a2a]"
-                            >
-                                🔍 Demo Analyst
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className="text-center mt-6">
                     <p className="text-[#555] text-xs">
-                        Powered by Microsoft Azure AI
+                        Secured by Supabase Authentication
                     </p>
                 </div>
             </div>

@@ -260,6 +260,10 @@ export class PCDSClient {
         return this.request(`${API_V2_PREFIX}/mitre/stats/coverage`);
     }
 
+    async getPrediction(customerId: string) {
+        return this.request(`${API_V2_PREFIX}/predict/${customerId}`);
+    }
+
     private wsReconnectAttempts = 0;
     private maxReconnectAttempts = 3;
 

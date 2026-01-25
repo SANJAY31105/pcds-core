@@ -1,0 +1,17 @@
+{
+    "name": "PCDS Enterprise",
+    "short_name": "PCDS",
+    "description": "Predictive Cyber Defence System",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#0a0a0a",
+    "theme_color": "#0a0a0a",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "192x192 512x512",
+            "type": "image/svg+xml"
+        }
+    ]
+}

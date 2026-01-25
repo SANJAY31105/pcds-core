@@ -55,10 +55,10 @@ export default function NetworkTopology3D({ threats }: NetworkTopology3DProps) {
         const simulation = d3.forceSimulation<NetworkNode, NetworkLink>(nodes)
             .force('link', d3.forceLink<NetworkNode, NetworkLink>(links)
                 .id((d: any) => d.id)
-                .distance(100))
-            .force('charge', d3.forceManyBody().strength(-300))
+                .distance(120)) // Increased distance for better visibility
+            .force('charge', d3.forceManyBody().strength(-400))
             .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collision', d3.forceCollide().radius(30));
+            .force('collision', d3.forceCollide().radius(40));
 
         simulationRef.current = simulation;
 
@@ -71,13 +71,45 @@ export default function NetworkTopology3D({ threats }: NetworkTopology3DProps) {
 
         svg.call(zoom as any);
 
+        // Define Filters and Gradients
+        const defs = svg.append('defs');
+
+        // Neon Glow Filter
+        const filter = defs.append("filter")
+            .attr("id", "glow")
+            .attr("x", "-50%")
+            .attr("y", "-50%")
+            .attr("width", "200%")
+            .attr("height", "200%");
+
+        filter.append("feGaussianBlur")
+            .attr("stdDeviation", "3")
+            .attr("result", "coloredBlur");
+
+        const feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode").attr("in", "coloredBlur");
+        feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+        // Create gradients
+        const createGradient = (id: string, color: string) => {
+            const gradient = defs.append('radialGradient').attr('id', id);
+            gradient.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.9);
+            gradient.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0.2);
+        };
+
+        createGradient('gradient-critical', '#ff0055');
+        createGradient('gradient-high', '#ff6b35');
+        createGradient('gradient-medium', '#ffaa00');
+        createGradient('gradient-low', '#00d4ff');
+        createGradient('gradient-safe', '#00ff85');
+
         // Create links
         const link = g.append('g')
             .selectAll('line')
             .data(links)
             .join('line')
             .attr('class', 'network-link')
-            .attr('stroke', (d: any) => d.isThreat ? '#ff0055' : 'rgba(0, 240, 255, 0.3)')
+            .attr('stroke', (d: any) => d.isThreat ? '#ff0055' : 'rgba(0, 240, 255, 0.2)')
             .attr('stroke-width', (d: any) => d.isThreat ? 2 : 1)
             .attr('stroke-dasharray', (d: any) => d.isThreat ? '5,5' : '0');
 
@@ -103,32 +135,9 @@ export default function NetworkTopology3D({ threats }: NetworkTopology3DProps) {
                     d.fy = null;
                 }));
 
-        // Add circles with gradient fills
-        const defs = svg.append('defs');
-
-        // Create gradients for different risk levels
-        const createGradient = (id: string, color: string) => {
-            const gradient = defs.append('radialGradient')
-                .attr('id', id);
-            gradient.append('stop')
-                .attr('offset', '0%')
-                .attr('stop-color', color)
-                .attr('stop-opacity', 0.8);
-            gradient.append('stop')
-                .attr('offset', '100%')
-                .attr('stop-color', color)
-                .attr('stop-opacity', 0.2);
-        };
-
-        createGradient('gradient-critical', '#ff0055');
-        createGradient('gradient-high', '#ff6b35');
-        createGradient('gradient-medium', '#ffaa00');
-        createGradient('gradient-low', '#00d4ff');
-        createGradient('gradient-safe', '#00ff85');
-
-        // Add circles
+        // Add main node circles with Glow
         node.append('circle')
-            .attr('r', (d: any) => d.type === 'server' ? 20 : d.type === 'threat' ? 15 : 12)
+            .attr('r', (d: any) => d.type === 'server' ? 22 : d.type === 'threat' ? 16 : 14)
             .attr('fill', (d: any) => {
                 if (d.type === 'threat') return 'url(#gradient-critical)';
                 if (d.riskScore > 80) return 'url(#gradient-critical)';
@@ -137,34 +146,81 @@ export default function NetworkTopology3D({ threats }: NetworkTopology3DProps) {
                 if (d.riskScore > 20) return 'url(#gradient-low)';
                 return 'url(#gradient-safe)';
             })
-            .attr('stroke', '#00f0ff')
-            .attr('stroke-width', (d: any) => d.isActive ? 2 : 1)
+            .style("filter", "url(#glow)") // Apply Glow!
+            .attr('stroke', '#fff')
+            .attr('stroke-width', (d: any) => d.isActive ? 2 : 0.5)
             .attr('class', (d: any) => d.isActive ? 'node-active' : '');
 
-        // Add glow effect for threat nodes
-        node.filter((d: any) => d.type === 'threat' || d.riskScore > 70)
+        // Add rings for important nodes
+        node.filter((d: any) => d.type === 'server' || d.type === 'router')
             .append('circle')
-            .attr('r', (d: any) => d.type === 'server' ? 25 : d.type === 'threat' ? 20 : 17)
+            .attr('r', (d: any) => d.type === 'server' ? 30 : 25)
             .attr('fill', 'none')
-            .attr('stroke', '#ff0055')
-            .attr('stroke-width', 1)
-            .attr('opacity', 0.5)
-            .attr('class', 'node-glow');
+            .attr('stroke', (d: any) => d.type === 'server' ? '#00f0ff' : '#00ff85')
+            .attr('stroke-opacity', 0.3)
+            .attr('stroke-dasharray', '3,3')
+            .attr('class', 'rotating-ring');
 
-        // Add labels
+        // Add icons/labels
+        node.append('text')
+            .text((d: any) => {
+                if (d.type === 'server') return '🏢';
+                if (d.type === 'router') return '🌐';
+                if (d.type === 'threat') return '💀';
+                return '💻';
+            })
+            .attr('font-size', (d: any) => d.type === 'server' ? 20 : 14)
+            .attr('dy', 5)
+            .attr('text-anchor', 'middle')
+            .style('pointer-events', 'none');
+
+        // Add text labels below
         node.append('text')
             .text((d: any) => d.name)
-            .attr('font-size', 10)
-            .attr('fill', '#ffffff')
+            .attr('font-size', 9)
+            .attr('fill', '#a1a1a1')
             .attr('text-anchor', 'middle')
-            .attr('dy', 30)
+            .attr('dy', 32)
             .attr('class', 'node-label');
 
-        // Add tooltips
+        // Tooltips
         node.append('title')
             .text((d: any) => `${d.name}\nIP: ${d.ip}\nRisk: ${d.riskScore}/100\nThreats: ${d.threats.length}`);
 
-        // Animation
+        // Traffic Animation System
+        const packetLayer = g.append('g').attr('class', 'packets');
+
+        const emitPacket = (l: any) => {
+            const source = l.source as NetworkNode;
+            const target = l.target as NetworkNode;
+
+            if (!source.x || !target.x || !source.y || !target.y) return;
+
+            const packet = packetLayer.append("circle")
+                .attr("r", l.isThreat ? 4 : 2)
+                .attr("fill", l.isThreat ? "#ff0055" : "#00f0ff")
+                .style("filter", "url(#glow)")
+                .attr("cx", source.x)
+                .attr("cy", source.y);
+
+            packet.transition()
+                .duration(1500)
+                .ease(d3.easeLinear)
+                .attr("cx", target.x)
+                .attr("cy", target.y)
+                .remove();
+        };
+
+        const trafficInterval = setInterval(() => {
+            if (isPaused) return;
+            links.forEach((l: any) => {
+                // Higher probability for active threats or server links
+                const prob = l.isThreat ? 0.3 : 0.05;
+                if (Math.random() < prob) emitPacket(l);
+            });
+        }, 300);
+
+        // Simulation Tick
         simulation.on('tick', () => {
             link
                 .attr('x1', (d: any) => d.source.x)
@@ -175,28 +231,18 @@ export default function NetworkTopology3D({ threats }: NetworkTopology3DProps) {
             node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
         });
 
-        // Pulse animation for active nodes
-        const pulse = () => {
-            g.selectAll('.node-active')
-                .transition()
-                .duration(1000)
-                .attr('r', 25)
-                .transition()
-                .duration(1000)
-                .attr('r', 20);
+        // Pulse animation for active nodes (CSS based handling for glow radius?)
+        // Pulse loop mainly for rings
+        let angle = 0;
+        const pulseInterval = setInterval(() => {
+            angle += 5;
+            svg.selectAll('.rotating-ring')
+                .attr('transform', `rotate(${angle})`);
+        }, 50);
 
-            g.selectAll('.node-glow')
-                .transition()
-                .duration(1500)
-                .attr('opacity', 0.8)
-                .transition()
-                .duration(1500)
-                .attr('opacity', 0.3);
-        };
-
-        const pulseInterval = setInterval(pulse, 2000);
 
         return () => {
+            clearInterval(trafficInterval);
             clearInterval(pulseInterval);
             simulation.stop();
         };
