@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, AlertTriangle, Shield, Zap, Pause, Play, Wifi, Power, Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { Activity, AlertTriangle, Shield, Zap, Pause, Play, Wifi, Power, Eye, EyeOff, Download } from 'lucide-react';
 
 interface LiveEvent {
     id: string;
@@ -294,6 +295,14 @@ export default function LiveFeedPage() {
                         <Power className="w-4 h-4" />
                         {monitoring ? 'Stop Monitoring' : 'Start Real Monitor'}
                     </button>
+
+                    <Link
+                        href="/download"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#141414] border border-[#2a2a2a] text-[#a1a1a1] hover:text-white transition-colors"
+                    >
+                        <Download className="w-4 h-4" />
+                        Get Agent
+                    </Link>
 
                     {/* Pause/Resume */}
                     <button

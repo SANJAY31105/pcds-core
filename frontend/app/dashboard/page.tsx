@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     Target, TrendingUp, Clock, Shield, AlertTriangle,
     Activity, ChevronRight, Users, Server, ArrowUpRight,
-    Brain, Zap, BarChart3, GitBranch, Sparkles
+    Brain, Zap, BarChart3, GitBranch, Sparkles, Download
 } from 'lucide-react';
 import PredictionTimeline from '@/components/PredictionTimeline';
 import NetworkTopology3D from '@/components/visualizations/NetworkTopology3D';
@@ -308,6 +308,23 @@ export default function DashboardPage() {
                 <QuickLink href="/mitre" icon={GitBranch} label="MITRE" />
                 <QuickLink href="/reports" icon={TrendingUp} label="Reports" />
                 <QuickLink href="/approvals" icon={Clock} label="Approvals" />
+            </div>
+
+            {/* Deploy Agent Call-to-Action */}
+            <div className="bg-gradient-to-r from-[#10a37f]/10 to-transparent border border-[#10a37f]/20 rounded-xl p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#10a37f]/20 rounded-lg">
+                        <Server className="w-6 h-6 text-[#10a37f]" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Deploy New Agent</h3>
+                        <p className="text-sm text-[#a1a1a1]">Secure a new endpoint in 30 seconds. Download the lightweight installer.</p>
+                    </div>
+                </div>
+                <Link href="/download" className="px-6 py-3 bg-[#10a37f] hover:bg-[#0d8a6a] text-white font-bold rounded-lg transition-colors flex items-center gap-2">
+                    <Download className="w-4 h-4" />
+                    Download Installer
+                </Link>
             </div>
 
             {/* Performance Footer */}
