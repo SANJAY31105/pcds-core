@@ -29,7 +29,7 @@ export default function DashboardPage() {
             // Get customer ID from logic or demo
             const customerId = 'demo';
 
-            const [dashboard, mitre, soar, prediction] = await Promise.all([
+            const [dashboard, mitre, soar, prediction]: any[] = await Promise.all([
                 apiClient.getDashboardOverview(24).catch(() => null),
                 fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/mitre/stats/coverage`).then(r => r.json()).catch(() => null),
                 fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/soar/incidents`).then(r => r.json()).catch(() => null),
