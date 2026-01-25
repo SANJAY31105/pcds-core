@@ -24,8 +24,6 @@ const navigation = [
     { name: 'Investigations', href: '/investigations', icon: ClipboardList },
     { name: 'Hunt', href: '/hunt', icon: Crosshair },
     { name: 'ML Metrics', href: '/ml-metrics', icon: BarChart3 },
-    { name: 'Validation', href: '/validation', icon: CheckCircle },
-    { name: 'Pricing', href: '/pricing', icon: DollarSign },
     { name: 'ML Hub', href: '/ml', icon: Brain },
     { name: 'SIEM', href: '/siem', icon: Share2 },
 ];
