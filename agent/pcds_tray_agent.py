@@ -33,15 +33,100 @@ PCDS_DASHBOARD_URL = "https://pcdsai.app/dashboard"
 SEND_INTERVAL = 10  # seconds
 APP_NAME = "PCDS Agent"
 
-# Known malicious process signatures
-MALICIOUS_PROCESSES = {
-    'mimikatz', 'cobaltstrike', 'meterpreter', 'beacon', 'lazagne',
-    'nc.exe', 'netcat', 'psexec', 'wce.exe', 'procdump',
-    'bloodhound', 'rubeus', 'certutil', 'crackmapexec'
+# ============= MALWARE SIGNATURE DATABASE =============
+# Comprehensive list of known malicious tools, ransomware, and attack tools
+
+# CREDENTIAL THEFT / DUMPERS
+CREDENTIAL_TOOLS = {
+    'mimikatz', 'lazagne', 'wce', 'gsecdump', 'pwdump', 'fgdump',
+    'secretsdump', 'pypykatz', 'nanodump', 'handlekatz', 'kekeo',
+    'safetykatz', 'sharpkatz', 'dumppert', 'dumpert', 'lsassy'
 }
 
-# Suspicious process patterns (will warn but not auto-kill)
-SUSPICIOUS_PATTERNS = ['powershell -e', 'cmd /c', 'bitsadmin', 'certutil -decode']
+# REMOTE ACCESS TROJANS (RATs)
+RATS = {
+    'cobaltstrike', 'beacon', 'meterpreter', 'covenant', 'sliver',
+    'bruteratel', 'havoc', 'poshc2', 'empire', 'nishang',
+    'quasarrat', 'asyncrat', 'njrat', 'darkcomet', 'remcosrat',
+    'orcusrat', 'netwire', 'poisonivy', 'blackshades', 'warzone'
+}
+
+# LATERAL MOVEMENT TOOLS
+LATERAL_MOVEMENT = {
+    'psexec', 'paexec', 'wmiexec', 'smbexec', 'dcomexec', 'atexec',
+    'winrm', 'crackmapexec', 'impacket', 'sharphound', 'bloodhound',
+    'adexplorer', 'pingcastle', 'rubeus', 'kerbrute', 'spray'
+}
+
+# RANSOMWARE FAMILIES
+RANSOMWARE = {
+    'wannacry', 'petya', 'notpetya', 'ryuk', 'conti', 'lockbit',
+    'revil', 'sodinokibi', 'maze', 'egregor', 'darkside', 'blackcat',
+    'hive', 'blackbasta', 'royal', 'akira', 'play', 'clop',
+    'phobos', 'dharma', 'stop', 'djvu', 'locky', 'cryptolocker'
+}
+
+# NETWORK TOOLS (Often Abused)
+NETWORK_TOOLS = {
+    'nc', 'nc.exe', 'ncat', 'netcat', 'nmap', 'masscan', 'angry',
+    'tcpdump', 'wireshark', 'responder', 'inveigh', 'ntlmrelay',
+    'mitm6', 'bettercap', 'mitmproxy', 'ettercap'
+}
+
+# LOADERS / STAGERS
+LOADERS = {
+    'donut', 'shellcode', 'msfvenom', 'shellter', 'veil', 'unicorn',
+    'powercat', 'invoke-obfuscation', 'amsi', 'sharpshooter'
+}
+
+# ROOTKITS / EVASION
+EVASION = {
+    'gdriverload', 'kdmapper', 'dsefix', 'mimifree', 'processhider',
+    'rootkit', 'bootkit', 'turla', 'equation', 'uroburos'
+}
+
+# Combined malicious set (for auto-kill when enabled)
+MALICIOUS_PROCESSES = (
+    CREDENTIAL_TOOLS | RATS | LATERAL_MOVEMENT | 
+    RANSOMWARE | NETWORK_TOOLS | LOADERS | EVASION
+)
+
+# Suspicious command-line patterns (warn but configurable kill)
+SUSPICIOUS_PATTERNS = [
+    # Encoded/Obfuscated PowerShell
+    'powershell -e', 'powershell -enc', 'powershell -encodedcommand',
+    'powershell -w hidden', 'powershell -windowstyle hidden',
+    'powershell -nop', 'powershell -noprofile', 'powershell iex',
+    'invoke-expression', 'invoke-command', 'invoke-webrequest',
+    'downloadstring', 'downloadfile', 'system.net.webclient',
+    
+    # CMD abuse
+    'cmd /c', 'cmd /k', 'cmd.exe /c', 'wmic process',
+    'wmic shadowcopy delete', 'vssadmin delete shadows',
+    
+    # LOLBins (Living Off the Land Binaries)
+    'certutil -urlcache', 'certutil -decode', 'certutil -encode',
+    'bitsadmin /transfer', 'bitsadmin /create',
+    'mshta vbscript', 'mshta javascript',
+    'regsvr32 /s /n /u', 'regsvr32 scrobj',
+    'rundll32 javascript', 'rundll32 shell32',
+    'cscript', 'wscript',
+    
+    # Disable security
+    'set-mppreference', 'disable-windowsoptionalfeature',
+    'netsh advfirewall set', 'netsh firewall',
+    'sc stop', 'sc delete',
+    
+    # Persistence
+    'schtasks /create', 'at \\\\', 'reg add.*\\run',
+    'wmic startup', 'startup folder'
+]
+
+# High-confidence malicious (immediate action)
+CRITICAL_THREATS = {
+    'mimikatz', 'cobaltstrike', 'meterpreter', 'ryuk', 'conti',
+    'lockbit', 'wannacry', 'petya', 'revil', 'darkside'
+}
 
 class ActiveDefense:
     """Active Defense module - can terminate malicious processes"""
