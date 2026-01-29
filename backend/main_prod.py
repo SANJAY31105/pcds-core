@@ -23,35 +23,60 @@ class AnomalyDetector:
     
     def __init__(self):
         self.model = IsolationForest(
-            n_estimators=50,  # Lightweight
-            contamination=0.1,  # Expect 10% anomalies
+            n_estimators=100,  # Better detection
+            contamination=0.03,  # Expect only 3% anomalies (reduced from 10%)
             random_state=42
         )
-        self.training_data = deque(maxlen=1000)  # Rolling window
+        self.training_data = deque(maxlen=2000)  # Larger window for better baseline
         self.is_trained = False
-        self.min_samples = 50  # Minimum samples before training
+        self.min_samples = 100  # Need more samples before training
+        self.risk_threshold = 70  # Only flag if risk score > 70
+        
+        # Whitelisted processes (reduce false positives)
+        self.safe_processes = {
+            'chrome.exe', 'firefox.exe', 'msedge.exe', 'code.exe', 'explorer.exe',
+            'svchost.exe', 'system', 'searchhost.exe', 'runtimebroker.exe'
+        }
         
     def extract_features(self, event: dict) -> np.ndarray:
         """Convert network event to feature vector"""
-        # Feature engineering
         port = event.get('dest_port') or 0
         bytes_sent = event.get('bytes_sent') or 0
         bytes_recv = event.get('bytes_recv') or 0
+        process = (event.get('process_name') or '').lower()
         
-        # Port risk scoring
-        high_risk_ports = {22, 23, 3389, 445, 135, 139}  # SSH, Telnet, RDP, SMB
-        port_risk = 1.0 if port in high_risk_ports else 0.0
+        # Port risk scoring (more nuanced)
+        critical_ports = {22, 23, 3389, 445, 135, 139, 4444, 5555}  # Known attack ports
+        suspicious_ports = {8080, 8443, 9001, 1337}  # Suspicious but not certain
         
-        # Suspicious port ranges
-        suspicious_port = 1.0 if port > 49152 else 0.0  # Ephemeral ports
+        if port in critical_ports:
+            port_risk = 1.0
+        elif port in suspicious_ports:
+            port_risk = 0.5
+        else:
+            port_risk = 0.0
+        
+        # Process risk (whitelisting)
+        process_risk = 0.0
+        if process and process not in self.safe_processes:
+            if 'powershell' in process or 'cmd' in process:
+                process_risk = 0.6  # Moderate risk, not auto-flag
+            elif 'python' in process or 'nc' in process:
+                process_risk = 0.8
+            else:
+                process_risk = 0.2  # Unknown but probably fine
+        
+        # Ephemeral port detection (less weight)
+        ephemeral = 0.3 if port > 49152 else 0.0
         
         features = np.array([
             port / 65535,  # Normalized port
-            min(bytes_sent / 1e6, 1.0),  # Normalized bytes (cap at 1MB)
+            min(bytes_sent / 1e6, 1.0),  # Normalized bytes
             min(bytes_recv / 1e6, 1.0),
             port_risk,
-            suspicious_port,
+            ephemeral,
             1.0 if event.get('status') == 'ESTABLISHED' else 0.0,
+            process_risk,  # New: process-based risk
         ])
         return features
     
@@ -70,14 +95,13 @@ class AnomalyDetector:
         self.training_data.append(features)
         
         # Auto-retrain periodically
-        if len(self.training_data) % 100 == 0:
+        if len(self.training_data) % 200 == 0:
             self.train()
         
         if not self.is_trained:
-            # Not enough data yet - return neutral score
             return {
                 "is_anomaly": False,
-                "risk_score": 25,
+                "risk_score": 15,
                 "confidence": 0.5,
                 "reason": "Baseline learning in progress"
             }
@@ -87,13 +111,16 @@ class AnomalyDetector:
         anomaly_score = -self.model.score_samples(features.reshape(1, -1))[0]
         
         # Convert to 0-100 risk score
-        risk_score = int(min(100, max(0, anomaly_score * 50 + 50)))
+        risk_score = int(min(100, max(0, anomaly_score * 40 + 30)))
+        
+        # Only flag as anomaly if risk_score exceeds threshold
+        is_threat = prediction == -1 and risk_score > self.risk_threshold
         
         return {
-            "is_anomaly": prediction == -1,
+            "is_anomaly": is_threat,
             "risk_score": risk_score,
-            "confidence": 0.85 if self.is_trained else 0.5,
-            "reason": "Unusual traffic pattern detected" if prediction == -1 else "Normal traffic"
+            "confidence": 0.9 if self.is_trained else 0.5,
+            "reason": "Suspicious traffic pattern" if is_threat else "Normal traffic"
         }
 
 # Global anomaly detector instance
