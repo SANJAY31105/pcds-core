@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Shield, Target, FileText,
     Activity, AlertTriangle, ClipboardList, Crosshair, Bot, Bell, Clock,
-    Brain, Share2, Sparkles, BarChart3, CheckCircle, DollarSign, Download
+    Brain, Share2, Sparkles, BarChart3, CheckCircle, DollarSign, Download, Key
 } from 'lucide-react';
 const navigation = [
     // Key demo pages at top (in demo order)
@@ -18,6 +18,7 @@ const navigation = [
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Detections', href: '/detections', icon: AlertTriangle },
     { name: 'Download Agent', href: '/download', icon: Download },
+    { name: 'API Keys', href: '/settings/api-keys', icon: Key },
     // Other pages
     { name: 'Entities', href: '/entities', icon: Target },
     { name: 'Alerts', href: '/alerts', icon: Bell },

@@ -226,11 +226,25 @@ events_table = sqlalchemy.Table(
     sqlalchemy.Column("timestamp", sqlalchemy.String),
 )
 
+# API Keys table for agent authentication
+api_keys_table = sqlalchemy.Table(
+    "api_keys",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.String, primary_key=True),
+    sqlalchemy.Column("key", sqlalchemy.String, unique=True, index=True),
+    sqlalchemy.Column("user_id", sqlalchemy.String, index=True),
+    sqlalchemy.Column("user_email", sqlalchemy.String),
+    sqlalchemy.Column("name", sqlalchemy.String),
+    sqlalchemy.Column("created_at", sqlalchemy.String),
+    sqlalchemy.Column("last_used", sqlalchemy.String),
+    sqlalchemy.Column("is_active", sqlalchemy.Boolean, default=True),
+)
+
 # ============= Agent Data Ingestion System =============
-# In-memory storage for customer events (use DB in production)
+# In-memory cache for API keys (loaded from DB on startup)
 customer_api_keys = {
     "pcds_demo_key_12345": {"customer_id": "demo", "name": "Demo Customer"},
-    # Real customers added via API
+    # Real customers loaded from database
 }
 customer_events = {}  # {customer_id: [events]}
 
@@ -342,7 +356,124 @@ async def login(req: LoginRequest):
         }
     }
 
+# ============= API Key Management =============
+
+class GenerateKeyRequest(BaseModel):
+    user_email: str
+    key_name: Optional[str] = "Default Agent Key"
+
+class ApiKeyResponse(BaseModel):
+    id: str
+    key: str  # Only shown once on creation
+    name: str
+    created_at: str
+    last_used: Optional[str] = None
+    is_active: bool = True
+
+def generate_api_key(user_email: str) -> str:
+    """Generate a unique API key for a user"""
+    import secrets
+    # Format: pcds_{short_user_hash}_{random}
+    user_hash = hashlib.md5(user_email.encode()).hexdigest()[:6]
+    random_part = secrets.token_hex(8)
+    return f"pcds_{user_hash}_{random_part}"
+
+@app.post("/api/v2/keys/generate")
+async def create_api_key(req: GenerateKeyRequest):
+    """Generate a new API key for a user"""
+    key_id = str(uuid.uuid4())
+    api_key = generate_api_key(req.user_email)
+    created_at = datetime.now().isoformat()
+    
+    # Store in database if available
+    if database:
+        try:
+            query = api_keys_table.insert().values(
+                id=key_id,
+                key=api_key,
+                user_id=hashlib.md5(req.user_email.encode()).hexdigest()[:8],
+                user_email=req.user_email,
+                name=req.key_name,
+                created_at=created_at,
+                last_used=None,
+                is_active=True
+            )
+            await database.execute(query)
+        except Exception as e:
+            print(f"Error storing API key: {e}")
+    
+    # Also add to in-memory cache
+    customer_api_keys[api_key] = {
+        "customer_id": hashlib.md5(req.user_email.encode()).hexdigest()[:8],
+        "name": req.user_email,
+        "key_id": key_id
+    }
+    
+    return {
+        "success": True,
+        "key": api_key,  # Only shown once!
+        "key_id": key_id,
+        "name": req.key_name,
+        "created_at": created_at,
+        "message": "Save this key! It won't be shown again."
+    }
+
+@app.get("/api/v2/keys")
+async def list_api_keys(user_email: str):
+    """List all API keys for a user (keys are masked)"""
+    keys = []
+    
+    if database:
+        try:
+            query = api_keys_table.select().where(
+                api_keys_table.c.user_email == user_email
+            )
+            rows = await database.fetch_all(query)
+            for row in rows:
+                # Mask the key: show first 10 and last 4 chars
+                full_key = row['key']
+                masked = f"{full_key[:10]}...{full_key[-4:]}"
+                keys.append({
+                    "id": row['id'],
+                    "key_masked": masked,
+                    "name": row['name'],
+                    "created_at": row['created_at'],
+                    "last_used": row['last_used'],
+                    "is_active": row['is_active']
+                })
+        except Exception as e:
+            print(f"Error listing keys: {e}")
+    
+    return {"keys": keys}
+
+@app.delete("/api/v2/keys/{key_id}")
+async def revoke_api_key(key_id: str):
+    """Revoke (deactivate) an API key"""
+    if database:
+        try:
+            # Get the key first to remove from cache
+            query = api_keys_table.select().where(api_keys_table.c.id == key_id)
+            row = await database.fetch_one(query)
+            
+            if row:
+                # Remove from cache
+                if row['key'] in customer_api_keys:
+                    del customer_api_keys[row['key']]
+                
+                # Mark as inactive in DB
+                update_query = api_keys_table.update().where(
+                    api_keys_table.c.id == key_id
+                ).values(is_active=False)
+                await database.execute(update_query)
+                
+                return {"success": True, "message": "Key revoked"}
+        except Exception as e:
+            print(f"Error revoking key: {e}")
+    
+    return {"success": False, "message": "Key not found"}
+
 from fastapi import Header
+
 
 @app.get("/api/v2/auth/me")
 async def get_current_user(authorization: Optional[str] = Header(None)):
