@@ -1,11 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+"""
+PyInstaller spec for PCDS Installer
+Build with: pyinstaller PCDS_Setup.spec
+This bundles the tray agent exe inside the installer.
+"""
 
 a = Analysis(
     ['installer_gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('dist/pcds_agent.exe', '.')],
+    datas=[
+        ('dist/pcds_tray_agent.exe', '.'),  # Bundle the tray agent inside
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -14,6 +20,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -29,11 +36,12 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=False,  # GUI app, no console
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    uac_admin=True,
+    icon=None,
+    uac_admin=False,  # No admin required for tray app
 )
