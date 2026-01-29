@@ -1,14 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Shield, Clock, CheckCircle, Smartphone } from 'lucide-react';
+import { Download, Shield, Clock, CheckCircle, Smartphone, Copy, Check, Key } from 'lucide-react';
 
 export default function DownloadPage() {
     const [trialStarted, setTrialStarted] = useState(false);
+    const [email, setEmail] = useState('');
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
-    const handleStartTrial = () => {
-        // In real app, this would call API to create trial license
-        setTrialStarted(true);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pcds-backend-production.up.railway.app';
+
+    const handleStartTrial = async () => {
+        if (!email || !email.includes('@')) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await fetch(`${API_URL}/api/v2/keys/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_email: email,
+                    key_name: 'Trial Agent Key'
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.key) {
+                setApiKey(data.key);
+                setTrialStarted(true);
+                // Save email for later
+                localStorage.setItem('userEmail', email);
+            } else {
+                // Fallback to demo key if API not ready
+                setApiKey('pcds_demo_key_12345');
+                setTrialStarted(true);
+                setError('Using demo key (API deploying)');
+            }
+        } catch (err) {
+            // Fallback to demo key on error
+            console.error('API Error:', err);
+            setApiKey('pcds_demo_key_12345');
+            setTrialStarted(true);
+            setError('Using demo key (API deploying)');
+        }
+
+        setLoading(false);
+    };
+
+    const copyToClipboard = () => {
+        if (apiKey) {
+            navigator.clipboard.writeText(apiKey);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     return (
@@ -51,19 +104,54 @@ export default function DownloadPage() {
                     </div>
 
                     {!trialStarted ? (
-                        <button
-                            onClick={handleStartTrial}
-                            className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all"
-                        >
-                            <Clock className="w-5 h-5" />
-                            Start 14-Day Free Trial
-                        </button>
+                        <div className="space-y-4">
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your work email"
+                                className="w-full px-4 py-3 bg-black/40 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#22c55e]/50"
+                            />
+                            <button
+                                onClick={handleStartTrial}
+                                disabled={loading}
+                                className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                            >
+                                <Clock className="w-5 h-5" />
+                                {loading ? 'Generating...' : 'Start 14-Day Free Trial'}
+                            </button>
+                            {error && !trialStarted && (
+                                <p className="text-red-400 text-sm text-center">{error}</p>
+                            )}
+                        </div>
                     ) : (
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                            {/* API Key Display */}
                             <div className="p-4 bg-[#22c55e]/10 border border-[#22c55e]/20 rounded-xl">
-                                <p className="text-[#22c55e] text-sm font-medium mb-1">Trial Active</p>
-                                <p className="text-white text-xs">Your license key has been generated automatically.</p>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Key className="w-4 h-4 text-[#22c55e]" />
+                                    <p className="text-[#22c55e] text-sm font-medium">Your API Key</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-black/40 rounded-lg p-3">
+                                    <code className="flex-1 text-white text-sm font-mono break-all">{apiKey}</code>
+                                    <button
+                                        onClick={copyToClipboard}
+                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    >
+                                        {copied ? (
+                                            <Check className="w-4 h-4 text-[#22c55e]" />
+                                        ) : (
+                                            <Copy className="w-4 h-4 text-gray-400" />
+                                        )}
+                                    </button>
+                                </div>
+                                <p className="text-[#666] text-xs mt-2">Copy this key. You'll need it during installation.</p>
                             </div>
+
+                            {error && (
+                                <p className="text-yellow-400 text-xs text-center">{error}</p>
+                            )}
+
                             <a
                                 href="/PCDS_Setup.exe"
                                 download="PCDS_Setup.exe"
@@ -72,6 +160,10 @@ export default function DownloadPage() {
                                 <Download className="w-5 h-5" />
                                 Download Installer (64-bit)
                             </a>
+
+                            <p className="text-[#666] text-xs text-center">
+                                Run the installer and paste your API key when prompted
+                            </p>
                         </div>
                     )}
                 </div>
@@ -91,6 +183,34 @@ export default function DownloadPage() {
                         <p className="text-[#666] text-sm">
                             Scan QR code on Dashboard<br />to install PWA
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick Setup Guide */}
+            <div className="mt-12 p-6 bg-[#141414] border border-[#2a2a2a] rounded-2xl">
+                <h3 className="text-xl font-bold text-white mb-4">Quick Setup Guide</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-full bg-[#22c55e]/20 flex items-center justify-center text-[#22c55e] font-bold shrink-0">1</div>
+                        <div>
+                            <h4 className="text-white font-medium">Enter Email</h4>
+                            <p className="text-[#666] text-sm">Get your unique API key instantly</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-full bg-[#22c55e]/20 flex items-center justify-center text-[#22c55e] font-bold shrink-0">2</div>
+                        <div>
+                            <h4 className="text-white font-medium">Download & Install</h4>
+                            <p className="text-[#666] text-sm">Run the installer, paste your key</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-full bg-[#22c55e]/20 flex items-center justify-center text-[#22c55e] font-bold shrink-0">3</div>
+                        <div>
+                            <h4 className="text-white font-medium">View Dashboard</h4>
+                            <p className="text-[#666] text-sm">Data appears in seconds</p>
+                        </div>
                     </div>
                 </div>
             </div>
