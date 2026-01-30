@@ -144,6 +144,10 @@ class InstallerApp:
         )
         self.key_entry.pack(fill="x", pady=5, ipady=8)
         
+        # Bind Enter key to install
+        self.key_entry.bind('<Return>', lambda e: self.install())
+        self.key_entry.focus_set()  # Auto-focus the input field
+        
         tk.Label(
             input_frame,
             text="Get your key at pcdsai.app/dashboard",
