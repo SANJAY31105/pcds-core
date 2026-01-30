@@ -264,7 +264,11 @@ class InstallerApp:
                 self.update_status("Creating shortcut...")
                 create_desktop_shortcut(dest_exe)
             
-            # 6. Launch the agent
+            # 6. Kill any existing agent processes first
+            self.update_status("Stopping existing agents...")
+            subprocess.run(['taskkill', '/F', '/IM', EXE_NAME], capture_output=True)
+            
+            # 7. Launch the agent
             self.update_status("Starting agent...")
             subprocess.Popen([dest_exe], cwd=INSTALL_DIR)
             
