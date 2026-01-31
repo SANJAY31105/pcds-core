@@ -31,8 +31,8 @@ export default function LiveFeedPage() {
     const [events, setEvents] = useState<LiveEvent[]>([]);
     const [connections, setConnections] = useState<NetworkConnection[]>([]);
     const [paused, setPaused] = useState(false);
-    const [realMode, setRealMode] = useState(false);
-    const [monitoring, setMonitoring] = useState(false);
+    const [realMode, setRealMode] = useState(true);  // Default to REAL mode
+    const [monitoring, setMonitoring] = useState(true);  // Auto-start monitoring
     const [stats, setStats] = useState({
         detections: 0,
         actions: 0,
