@@ -41,6 +41,37 @@ export default function LiveFeedPage() {
         suspicious: 0
     });
 
+    // Fetch real data immediately on mount
+    useEffect(() => {
+        const fetchInitial = async () => {
+            if (!realMode) return;
+            try {
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const [statsRes, eventsRes, connectionsRes] = await Promise.all([
+                    fetch(`${API_URL}/api/v2/network/stats`),
+                    fetch(`${API_URL}/api/v2/network/events?limit=50`),
+                    fetch(`${API_URL}/api/v2/network/connections?limit=20`)
+                ]);
+                const statsData = await statsRes.json();
+                const eventsData = await eventsRes.json();
+                const connectionsData = await connectionsRes.json();
+
+                setStats({
+                    packets: statsData.packets_analyzed || 0,
+                    connections: statsData.active_connections || 0,
+                    detections: eventsData.events?.filter((e: any) => e.type === 'detection').length || 0,
+                    actions: statsData.suspicious_count || 0,
+                    suspicious: statsData.suspicious_count || 0
+                });
+                if (eventsData.events) setEvents(eventsData.events);
+                if (connectionsData.connections) setConnections(connectionsData.connections);
+            } catch (e) {
+                console.error('Initial fetch error:', e);
+            }
+        };
+        fetchInitial();
+    }, []); // Empty deps - run once on mount
+
     // Start/Stop real monitoring
     const toggleRealMonitoring = async () => {
         try {
