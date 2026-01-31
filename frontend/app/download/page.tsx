@@ -169,6 +169,105 @@ export default function DownloadPage() {
                     )}
                 </div>
 
+                {/* macOS Agent Card */}
+                <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-8 hover:border-[#a855f7]/50 transition-colors">
+                    <div className="w-16 h-16 bg-[#a855f7]/10 rounded-xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-[#a855f7]" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                        </svg>
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-white mb-2">macOS Agent</h2>
+                    <p className="text-[#666] mb-6">
+                        Enterprise protection for Mac workstations (macOS 12+). Lightweight daemon with real-time monitoring.
+                    </p>
+
+                    <div className="space-y-3 mb-8">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#a855f7]" />
+                            <span className="text-sm text-[#a1a1a1]">Native Apple Silicon Support</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#a855f7]" />
+                            <span className="text-sm text-[#a1a1a1]">Minimal CPU Usage (~1%)</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#a855f7]" />
+                            <span className="text-sm text-[#a1a1a1]">Instant Dashboard Connection</span>
+                        </div>
+                    </div>
+
+                    {trialStarted ? (
+                        <div className="space-y-3">
+                            <div className="p-3 bg-[#a855f7]/10 border border-[#a855f7]/20 rounded-lg">
+                                <p className="text-[#a855f7] text-xs font-mono mb-1">Quick Install (Terminal):</p>
+                                <code className="text-white text-xs break-all">curl -sL https://pcdsai.app/install.sh | bash</code>
+                            </div>
+                            <a
+                                href="/pcds-agent-mac.zip"
+                                download
+                                className="w-full bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Download className="w-5 h-5" />
+                                Download for Mac
+                            </a>
+                        </div>
+                    ) : (
+                        <p className="text-[#666] text-sm text-center py-4">Enter email above to get API key first</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Second Row - Linux and Mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                {/* Linux Agent Card */}
+                <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-8 hover:border-[#f97316]/50 transition-colors">
+                    <div className="w-16 h-16 bg-[#f97316]/10 rounded-xl flex items-center justify-center mb-6">
+                        <svg className="w-8 h-8 text-[#f97316]" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587.26 1.22.39 1.827.39.676 0 1.295-.145 1.833-.43.244.49.712.845 1.266.96.74.2 1.675-.005 2.592-.46.863-.465 1.962-.4 2.774-.6.405-.13.766-.27.94-.6.174-.34.142-.804-.107-1.485-.073-.242-.015-.57.04-.97.028-.135.055-.337.055-.536a1.35 1.35 0 00-.131-.601c-.21-.412-.553-.545-.865-.68-.312-.134-.598-.202-.798-.4-.213-.24-.403-.572-.664-.84a.424.424 0 00-.11-.134c.122-.805-.01-1.657-.287-2.49-.581-1.77-1.83-3.47-2.716-4.52-.751-1.068-.975-1.93-1.051-3.021-.064-1.491 1.057-5.965-3.169-6.298A8.702 8.702 0 0012.504 0z" />
+                        </svg>
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-white mb-2">Linux Agent</h2>
+                    <p className="text-[#666] mb-6">
+                        Server-grade protection for Linux (Ubuntu 20.04+, RHEL 8+, Debian 11+). Systemd service with logging.
+                    </p>
+
+                    <div className="space-y-3 mb-8">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#f97316]" />
+                            <span className="text-sm text-[#a1a1a1]">Systemd Service Integration</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#f97316]" />
+                            <span className="text-sm text-[#a1a1a1]">Headless Server Support</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="w-5 h-5 text-[#f97316]" />
+                            <span className="text-sm text-[#a1a1a1]">Container-Ready (Docker/K8s)</span>
+                        </div>
+                    </div>
+
+                    {trialStarted ? (
+                        <div className="space-y-3">
+                            <div className="p-3 bg-[#f97316]/10 border border-[#f97316]/20 rounded-lg">
+                                <p className="text-[#f97316] text-xs font-mono mb-1">Quick Install (Terminal):</p>
+                                <code className="text-white text-xs break-all">curl -sL https://pcdsai.app/install.sh | sudo bash</code>
+                            </div>
+                            <a
+                                href="/pcds-agent-linux.tar.gz"
+                                download
+                                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Download className="w-5 h-5" />
+                                Download for Linux
+                            </a>
+                        </div>
+                    ) : (
+                        <p className="text-[#666] text-sm text-center py-4">Enter email above to get API key first</p>
+                    )}
+                </div>
+
                 {/* Mobile App Card */}
                 <div className="bg-[#141414] border border-[#2a2a2a] rounded-2xl p-8 opacity-75 hover:opacity-100 transition-opacity">
                     <div className="w-16 h-16 bg-[#3b82f6]/10 rounded-xl flex items-center justify-center mb-6">

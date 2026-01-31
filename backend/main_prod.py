@@ -267,6 +267,11 @@ api_keys_table = sqlalchemy.Table(
     sqlalchemy.Column("is_active", sqlalchemy.Boolean, default=True),
 )
 
+# ============= IN-MEMORY EVENT STORAGE (No DB Required) =============
+# Stores real-time agent events - lost on restart but free!
+in_memory_events = deque(maxlen=500)  # Last 500 events
+in_memory_connections = deque(maxlen=100)  # Last 100 active connections
+
 # ============= Agent Data Ingestion System =============
 # In-memory cache for API keys (loaded from DB on startup)
 customer_api_keys = {
@@ -669,6 +674,21 @@ async def ingest_agent_data(payload: AgentPayload):
             customer_events[customer_id] = []
         customer_events[customer_id].append(event_dict)
         customer_events[customer_id] = customer_events[customer_id][-1000:]
+        
+        # Also save to global in-memory events for Live Feed
+        in_memory_events.append(event_dict)
+        
+        # Track active connections
+        in_memory_connections.append({
+            "process": event.process_name or "unknown",
+            "remote_ip": event.dest_ip or "0.0.0.0",
+            "remote_port": event.dest_port or 0,
+            "hostname": payload.hostname,
+            "status": event.status or "ESTABLISHED",
+            "risk": event_dict["risk_score"],
+            "is_anomaly": event_dict["is_anomaly"],
+            "timestamp": timestamp
+        })
     
     return {
         "status": "success",
@@ -1148,38 +1168,72 @@ async def stop_monitoring():
 
 @app.get("/api/v2/network/stats")
 async def get_network_stats():
+    # Calculate real stats from in-memory data
+    events_list = list(in_memory_events)
+    connections_list = list(in_memory_connections)
+    suspicious_count = sum(1 for e in events_list if e.get('is_anomaly'))
+    
     return {
-        "packets_analyzed": random.randint(800000, 950000),
-        "active_connections": random.randint(120, 180),
-        "suspicious_count": random.randint(3, 15),
-        "bandwidth_usage": "2.1 Gbps"
+        "packets_analyzed": len(events_list),
+        "active_connections": len(connections_list),
+        "suspicious_count": suspicious_count,
+        "bandwidth_usage": f"{len(events_list) * 0.01:.1f} MB"
     }
 
 @app.get("/api/v2/network/events")
 async def get_network_events(limit: int = 50):
     events = []
-    base_events = [
-        {"type": "detection", "message": "Behavioral anomaly: Entity activity above baseline", "source": "UEBA", "mitre": {"technique_id": "T1078"}},
-        {"type": "detection", "message": "DNS Tunneling suspected", "source": "DNS Monitor", "mitre": {"technique_id": "T1048"}},
-        {"type": "action", "message": "Firewall rule updated: Blocked malicious IP", "source": "Auto Response"},
-        {"type": "system", "message": "Network scan completed", "source": "Scanner"},
-        {"type": "detection", "message": "Data exfiltration attempt detected", "source": "DLP", "mitre": {"technique_id": "T1567"}}
-    ]
     
-    for i in range(min(limit, 20)):
-        evt = random.choice(base_events)
-        severity = "high" if evt["type"] == "detection" else "info"
-        if "exfiltration" in evt["message"]: severity = "critical"
-        
-        events.append({
-            "id": str(uuid.uuid4()),
-            "type": evt["type"],
-            "message": evt["message"],
-            "severity": severity,
-            "timestamp": (datetime.utcnow() - timedelta(minutes=random.randint(0, 60))).isoformat(),
-            "source": evt["source"],
-            "mitre": evt.get("mitre")
-        })
+    # Try fetching REAL data from Database
+    if database:
+        try:
+            query = events_table.select().order_by(events_table.c.timestamp.desc()).limit(limit)
+            rows = await database.fetch_all(query)
+            
+            for row in rows:
+                severity = "high" if row['is_anomaly'] else "info"
+                if row['risk_score'] and row['risk_score'] > 80:
+                    severity = "critical"
+                
+                events.append({
+                    "id": str(uuid.uuid4()),
+                    "type": "detection" if row['is_anomaly'] else "network",
+                    "message": row['prediction_message'] or f"Connection from {row['source_ip']} to {row['dest_ip']}",
+                    "severity": severity,
+                    "timestamp": row['timestamp'].isoformat() if row['timestamp'] else datetime.utcnow().isoformat(),
+                    "source": row['hostname'] or "Agent",
+                    "mitre": None,
+                    "process": row['process_name'],
+                    "source_ip": row['source_ip'],
+                    "dest_ip": row['dest_ip'],
+                    "risk_score": row['risk_score']
+                })
+        except Exception as e:
+            print(f"DB error for network events: {e}")
+    
+    # Fallback to in-memory events
+    if not events and in_memory_events:
+        recent_events = list(in_memory_events)[-limit:]
+        for evt in reversed(recent_events):
+            severity = "high" if evt.get('is_anomaly') else "info"
+            risk = evt.get('risk_score', 0)
+            if risk and risk > 80:
+                severity = "critical"
+            
+            ml_result = evt.get('ml_prediction', {})
+            events.append({
+                "id": str(uuid.uuid4()),
+                "type": "detection" if evt.get('is_anomaly') else "network",
+                "message": ml_result.get('reason', f"Connection from {evt.get('source_ip')} to {evt.get('dest_ip')}"),
+                "severity": severity,
+                "timestamp": evt.get('received_at', datetime.utcnow().isoformat()),
+                "source": evt.get('hostname', 'Agent'),
+                "mitre": None,
+                "process": evt.get('process_name'),
+                "source_ip": evt.get('source_ip'),
+                "dest_ip": evt.get('dest_ip'),
+                "risk_score": risk
+            })
     
     return {"events": events}
 
@@ -1226,23 +1280,19 @@ async def get_network_connections(limit: int = 20):
                         "anomaly_score": float(evt.get('risk_score', 0)) / 100.0
                     })
     
-    # 3. If STILL empty, use Demo Data (so dashboard isn't blank)
-    if not connections:
-        processes = ["chrome.exe", "svchost.exe", "powershell.exe", "nginx", "postgres"]
-        for i in range(min(limit, 15)):
-            proc = random.choice(processes)
-            is_suspicious = proc in ["powershell.exe"] and random.random() > 0.7
-            
+    # 3. If STILL empty, use in_memory_connections (no demo data)
+    if not connections and in_memory_connections:
+        for conn in list(in_memory_connections)[-limit:]:
             connections.append({
-                "remote_ip": f"192.168.1.{random.randint(100, 200)}",
-                "remote_port": random.randint(1024, 65535),
-                "local_port": 443 if random.random() > 0.5 else 80,
-                "hostname": f"Demo-Node-{random.randint(1, 20)}", # Marked as Demo
-                "process": proc,
-                "status": "ESTABLISHED",
-                "is_suspicious": is_suspicious,
-                "anomaly_score": random.uniform(0.1, 0.9) if is_suspicious else random.uniform(0, 0.2),
-                "threat_info": {"notes": "Known malicious behaviour"} if is_suspicious else None
+                "remote_ip": conn.get("remote_ip", "0.0.0.0"),
+                "remote_port": conn.get("remote_port", 0),
+                "local_port": 0,
+                "hostname": conn.get("hostname", "Unknown"),
+                "process": conn.get("process", "unknown"),
+                "status": conn.get("status", "ESTABLISHED"),
+                "is_suspicious": conn.get("is_anomaly", False),
+                "anomaly_score": float(conn.get("risk", 0)) / 100.0,
+                "threat_info": None
             })
     
     return {"connections": connections[:limit]}
