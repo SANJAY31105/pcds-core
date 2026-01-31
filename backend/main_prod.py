@@ -869,9 +869,13 @@ def generate_demo_entities(count: int = 15) -> List[Entity]:
     
     return sorted(entities, key=lambda x: x.threat_score, reverse=True)
 
-# Initialize demo data
-DEMO_DETECTIONS = generate_demo_detections(50)
-DEMO_ENTITIES = generate_demo_entities(15)
+# Initialize demo data (DISABLED - uncomment for demos)
+# DEMO_DETECTIONS = generate_demo_detections(50)
+# DEMO_ENTITIES = generate_demo_entities(15)
+
+# Using empty lists for production testing
+DEMO_DETECTIONS = []
+DEMO_ENTITIES = []
 
 # ============= API Endpoints =============
 
