@@ -7,6 +7,7 @@ import {
     Activity, AlertTriangle, ClipboardList, Crosshair, Bot, Bell, Clock,
     Brain, Share2, Sparkles, BarChart3, CheckCircle, DollarSign, Download, Key
 } from 'lucide-react';
+
 const navigation = [
     // Key demo pages at top (in demo order)
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -43,34 +44,34 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
             {/* Mobile Backdrop */}
             {mobileOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
                     onClick={() => setMobileOpen?.(false)}
                 />
             )}
 
             <nav className={`
-                fixed left-0 top-0 h-screen bg-[#0a0a0a] border-r border-[#2a2a2a] transition-all duration-300 z-50
-                ${collapsed ? 'md:w-16' : 'md:w-64'}
-                w-64
+                fixed left-0 top-0 h-screen bg-[#0f0f0f] transition-all duration-300 ease-out z-50
+                ${collapsed ? 'md:w-[72px]' : 'md:w-60'}
+                w-60
                 ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 {/* Logo */}
-                <div className="p-4 border-b border-[#2a2a2a]">
+                <div className="h-14 flex items-center px-4">
                     <div className={`flex items-center ${collapsed ? 'md:justify-center' : 'gap-3'}`}>
-                        <div className="w-9 h-9 bg-[#10a37f] rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Shield className="w-5 h-5 text-white" />
+                        <div className="w-8 h-8 bg-[#10a37f] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Shield className="w-4 h-4 text-white" />
                         </div>
                         {(!collapsed || mobileOpen) && (
                             <div className={`${collapsed ? 'md:hidden' : 'block'}`}>
-                                <h1 className="text-lg font-semibold text-white">PCDS</h1>
-                                <p className="text-xs text-[#666]">Enterprise NDR</p>
+                                <h1 className="text-base font-semibold text-white tracking-tight">PCDS</h1>
+                                <p className="text-[10px] text-[#717171] -mt-0.5">Enterprise NDR</p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Navigation Links */}
-                <div className={`p-2 space-y-0.5 pb-24 overflow-y-auto max-h-[calc(100vh-160px)] ${collapsed ? 'md:px-2 px-3' : 'p-3'}`}>
+                <div className={`px-3 py-2 overflow-y-auto max-h-[calc(100vh-120px)] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent`}>
                     {navigation.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -82,17 +83,18 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
                                 onClick={() => setMobileOpen?.(false)}
                                 title={collapsed ? item.name : undefined}
                                 className={`
-                                    flex items-center gap-3 rounded-lg transition-colors text-sm
-                                    ${collapsed ? 'md:justify-center md:p-2.5 px-3 py-2.5' : 'px-3 py-2.5'}
+                                    flex items-center gap-3 rounded-lg transition-all duration-200 ease-out
+                                    ${collapsed ? 'md:justify-center md:px-0 md:py-2 px-3 py-2' : 'px-3 py-2'}
                                     ${isActive
-                                        ? 'bg-[#1a1a1a] text-white'
-                                        : 'text-[#a1a1a1] hover:text-white hover:bg-[#141414]'
+                                        ? 'bg-[#272727] text-white'
+                                        : 'text-[#aaa] hover:bg-[#1a1a1a] hover:text-white'
                                     }
+                                    mb-0.5
                                 `}
                             >
-                                <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-[#10a37f]' : ''}`} />
+                                <Icon className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${isActive ? 'text-[#10a37f]' : ''}`} />
                                 {(!collapsed || mobileOpen) && (
-                                    <span className={`font-medium ${collapsed ? 'md:hidden' : 'block'}`}>{item.name}</span>
+                                    <span className={`text-sm font-normal ${collapsed ? 'md:hidden' : 'block'}`}>{item.name}</span>
                                 )}
                             </Link>
                         );
@@ -100,11 +102,11 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
                 </div>
 
                 {/* Status Indicator */}
-                <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-[#2a2a2a] bg-[#0a0a0a]">
-                    <div className={`flex items-center gap-2 rounded-lg bg-[#141414] ${collapsed ? 'md:justify-center md:p-2 px-3 py-2' : 'px-3 py-2'}`}>
-                        <div className="w-2 h-2 rounded-full bg-[#22c55e]"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 bg-[#0f0f0f]">
+                    <div className={`flex items-center gap-2 ${collapsed ? 'md:justify-center' : ''}`}>
+                        <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse"></div>
                         {(!collapsed || mobileOpen) && (
-                            <span className={`text-sm text-[#a1a1a1] ${collapsed ? 'md:hidden' : 'block'}`}>Online</span>
+                            <span className={`text-xs text-[#717171] ${collapsed ? 'md:hidden' : 'block'}`}>Online</span>
                         )}
                     </div>
                 </div>
@@ -112,3 +114,4 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
         </>
     );
 }
+

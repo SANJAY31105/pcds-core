@@ -35,17 +35,17 @@ export default function AppLayout({
     return (
         <RequireAuth>
             <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed(!collapsed) }}>
-                <div className="flex min-h-screen bg-[#0a0a0a]">
+                <div className="flex min-h-screen bg-[#0f0f0f]">
                     <Navigation collapsed={collapsed} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-                    <div className={`flex-1 transition-all duration-300 ${collapsed ? 'md:ml-16' : 'md:ml-64'} ml-0`}>
-                        {/* Clean Header */}
-                        <header className="sticky top-0 z-30 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#2a2a2a] px-6 py-3">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
+                    <div className={`flex-1 transition-all duration-300 ease-out ${collapsed ? 'md:ml-[72px]' : 'md:ml-60'} ml-0`}>
+                        {/* Clean Header - YouTube-like */}
+                        <header className="sticky top-0 z-30 bg-[#0f0f0f] h-14 flex items-center px-4">
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-3">
                                     {/* Mobile Toggle */}
                                     <button
                                         onClick={() => setMobileOpen(true)}
-                                        className="md:hidden p-2 rounded-lg hover:bg-[#141414] text-[#666] hover:text-white transition-colors"
+                                        className="md:hidden p-2 rounded-full hover:bg-[#272727] text-[#aaa] hover:text-white transition-colors duration-200"
                                     >
                                         <Menu className="w-5 h-5" />
                                     </button>
@@ -53,7 +53,7 @@ export default function AppLayout({
                                     {/* Sidebar Toggle Button (Desktop) */}
                                     <button
                                         onClick={() => setCollapsed(!collapsed)}
-                                        className="hidden md:block p-2 rounded-lg hover:bg-[#141414] text-[#666] hover:text-white transition-colors"
+                                        className="hidden md:block p-2 rounded-full hover:bg-[#272727] text-[#aaa] hover:text-white transition-colors duration-200"
                                         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                                     >
                                         {collapsed ? (
@@ -63,8 +63,8 @@ export default function AppLayout({
                                         )}
                                     </button>
                                     <div>
-                                        <h2 className="text-base font-medium text-white">PCDS Enterprise</h2>
-                                        <p className="text-xs text-[#666]">Network Detection & Response</p>
+                                        <h2 className="text-sm font-medium text-white">PCDS Enterprise</h2>
+                                        <p className="text-[10px] text-[#717171]">Network Detection & Response</p>
                                     </div>
                                     <GlobalSearch />
                                 </div>
@@ -75,7 +75,7 @@ export default function AppLayout({
                         </header>
 
                         {/* Main Content */}
-                        <main className="p-6">
+                        <main className="p-4 md:p-6">
                             {children}
                         </main>
                     </div>
