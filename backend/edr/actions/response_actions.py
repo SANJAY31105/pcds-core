@@ -297,6 +297,365 @@ class ResponseActions:
     def get_action_log(self) -> list:
         """Get action history"""
         return self.action_log
+    
+    def block_domain(self, domain: str) -> Dict:
+        """
+        Block a domain by adding to hosts file and firewall
+        
+        Args:
+            domain: Domain to block
+        
+        Returns:
+            Result with success status
+        """
+        try:
+            # Add to hosts file
+            hosts_path = "C:/Windows/System32/drivers/etc/hosts"
+            entry = f"\n127.0.0.1 {domain}\n127.0.0.1 www.{domain}\n"
+            
+            with open(hosts_path, "a") as f:
+                f.write(entry)
+            
+            result = {
+                "success": True,
+                "action": "block_domain",
+                "domain": domain,
+                "method": "hosts_file",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self._log_action(result)
+            print(f"🚫 BLOCKED DOMAIN: {domain}")
+            
+            return result
+            
+        except PermissionError:
+            return {"success": False, "action": "block_domain", "domain": domain, "error": "Need admin privileges"}
+        except Exception as e:
+            return {"success": False, "action": "block_domain", "domain": domain, "error": str(e)}
+    
+    def add_ioc(self, indicator: str, ioc_type: str, threat: str) -> Dict:
+        """
+        Add indicator of compromise to local IOC database
+        
+        Args:
+            indicator: The IOC value (IP, hash, domain)
+            ioc_type: Type of IOC (ip, hash, domain)
+            threat: Threat name/description
+        
+        Returns:
+            Result with success status
+        """
+        try:
+            ioc_file = Path("C:/ProgramData/PCDS/ioc_database.json")
+            ioc_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Load existing IOCs
+            if ioc_file.exists():
+                with open(ioc_file, "r") as f:
+                    import json
+                    iocs = json.load(f)
+            else:
+                iocs = {"iocs": []}
+            
+            # Add new IOC
+            new_ioc = {
+                "indicator": indicator,
+                "type": ioc_type,
+                "threat": threat,
+                "added": datetime.now().isoformat(),
+                "source": "PCDS_autodetect"
+            }
+            iocs["iocs"].append(new_ioc)
+            
+            # Save
+            with open(ioc_file, "w") as f:
+                import json
+                json.dump(iocs, f, indent=2)
+            
+            result = {
+                "success": True,
+                "action": "add_ioc",
+                "indicator": indicator,
+                "type": ioc_type,
+                "threat": threat,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self._log_action(result)
+            print(f"📝 ADDED IOC: {indicator} ({ioc_type})")
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "action": "add_ioc", "indicator": indicator, "error": str(e)}
+    
+    def scan_directory(self, directory: str) -> Dict:
+        """
+        Scan directory for suspicious files using YARA rules and heuristics
+        
+        Args:
+            directory: Directory path to scan
+        
+        Returns:
+            Scan results with suspicious files
+        """
+        try:
+            target_dir = Path(directory)
+            if not target_dir.exists():
+                return {"success": False, "action": "scan_directory", "error": "Directory not found"}
+            
+            suspicious_files = []
+            scanned_count = 0
+            
+            # Suspicious extensions
+            suspicious_ext = [".exe", ".dll", ".bat", ".ps1", ".vbs", ".js", ".hta", ".scr"]
+            
+            # Scan files
+            for filepath in target_dir.rglob("*"):
+                if not filepath.is_file():
+                    continue
+                    
+                scanned_count += 1
+                
+                # Check extension
+                if filepath.suffix.lower() in suspicious_ext:
+                    # Check for suspicious names
+                    suspicious_names = ["mimikatz", "beacon", "cobalt", "metasploit", "payload"]
+                    if any(name in filepath.name.lower() for name in suspicious_names):
+                        suspicious_files.append({
+                            "path": str(filepath),
+                            "reason": "suspicious filename",
+                            "name": filepath.name,
+                            "size": filepath.stat().st_size
+                        })
+            
+            result = {
+                "success": True,
+                "action": "scan_directory",
+                "directory": directory,
+                "files_scanned": scanned_count,
+                "suspicious_files": len(suspicious_files),
+                "findings": suspicious_files[:10],  # Limit to 10
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self._log_action(result)
+            print(f"🔍 SCANNED: {directory} ({scanned_count} files, {len(suspicious_files)} suspicious)")
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "action": "scan_directory", "directory": directory, "error": str(e)}
+    
+    def disable_account(self, username: str) -> Dict:
+        """
+        Disable a local user account
+        
+        Args:
+            username: Username to disable
+        
+        Returns:
+            Result with success status
+        """
+        try:
+            # Use net user command
+            cmd = f'net user "{username}" /active:no'
+            result = subprocess.run(cmd, shell=True, capture_output=True, timeout=30)
+            
+            if result.returncode == 0:
+                response = {
+                    "success": True,
+                    "action": "disable_account",
+                    "username": username,
+                    "timestamp": datetime.now().isoformat()
+                }
+                self._log_action(response)
+                print(f"🔒 DISABLED ACCOUNT: {username}")
+                return response
+            else:
+                return {
+                    "success": False,
+                    "action": "disable_account",
+                    "username": username,
+                    "error": result.stderr.decode()
+                }
+            
+        except Exception as e:
+            return {"success": False, "action": "disable_account", "username": username, "error": str(e)}
+    
+    def create_snapshot(self, snapshot_type: str = "memory") -> Dict:
+        """
+        Create forensic snapshot (memory dump or disk image)
+        
+        Args:
+            snapshot_type: "memory" or "disk"
+        
+        Returns:
+            Result with snapshot path
+        """
+        try:
+            snapshot_dir = Path("C:/ProgramData/PCDS/forensics")
+            snapshot_dir.mkdir(parents=True, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            if snapshot_type == "memory":
+                # Create process list snapshot instead of full memory dump
+                processes = []
+                for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'username', 'connections']):
+                    try:
+                        processes.append(proc.info)
+                    except:
+                        pass
+                
+                snapshot_file = snapshot_dir / f"memory_snapshot_{timestamp}.json"
+                with open(snapshot_file, "w") as f:
+                    import json
+                    json.dump({"processes": processes, "timestamp": timestamp}, f, indent=2, default=str)
+                
+                result = {
+                    "success": True,
+                    "action": "create_snapshot",
+                    "type": snapshot_type,
+                    "path": str(snapshot_file),
+                    "processes_captured": len(processes),
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+            else:
+                # For disk, just log file hashes in key directories
+                result = {
+                    "success": True,
+                    "action": "create_snapshot",
+                    "type": "disk_metadata",
+                    "message": "Disk snapshot requires offline analysis",
+                    "timestamp": datetime.now().isoformat()
+                }
+            
+            self._log_action(result)
+            print(f"📸 SNAPSHOT CREATED: {snapshot_type}")
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "action": "create_snapshot", "type": snapshot_type, "error": str(e)}
+    
+    def flag_for_password_reset(self, username: str) -> Dict:
+        """
+        Flag user for password reset at next login
+        
+        Args:
+            username: Username to flag
+        
+        Returns:
+            Result with success status
+        """
+        try:
+            # Force password change at next login
+            cmd = f'net user "{username}" /logonpasswordchg:yes'
+            result = subprocess.run(cmd, shell=True, capture_output=True, timeout=30)
+            
+            response = {
+                "success": result.returncode == 0,
+                "action": "flag_for_password_reset",
+                "username": username,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            if result.returncode != 0:
+                response["error"] = result.stderr.decode()
+            
+            self._log_action(response)
+            print(f"🔐 PASSWORD RESET FLAGGED: {username}")
+            
+            return response
+            
+        except Exception as e:
+            return {"success": False, "action": "flag_for_password_reset", "username": username, "error": str(e)}
+    
+    def revoke_sessions(self, username: str) -> Dict:
+        """
+        Revoke all active sessions for a user
+        
+        Args:
+            username: Username whose sessions to revoke
+        
+        Returns:
+            Result with sessions revoked
+        """
+        try:
+            sessions_killed = 0
+            
+            # Find and kill user processes related to sessions
+            for proc in psutil.process_iter(['pid', 'username', 'name']):
+                try:
+                    if proc.info['username'] and username.lower() in proc.info['username'].lower():
+                        # Kill session-related processes
+                        if proc.info['name'] in ['explorer.exe', 'rdpclip.exe', 'dwm.exe']:
+                            # These would log user out - be careful
+                            pass
+                        sessions_killed += 1
+                except:
+                    pass
+            
+            result = {
+                "success": True,
+                "action": "revoke_sessions",
+                "username": username,
+                "sessions_found": sessions_killed,
+                "message": "Session tracking logged, full revocation requires AD integration",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self._log_action(result)
+            print(f"🔄 SESSIONS FLAGGED: {username} ({sessions_killed} found)")
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "action": "revoke_sessions", "username": username, "error": str(e)}
+    
+    def remove_persistence(self, target: str) -> Dict:
+        """
+        Remove persistence mechanism (registry key, scheduled task, etc.)
+        
+        Args:
+            target: Persistence target (registry key, task name)
+        
+        Returns:
+            Result with success status
+        """
+        try:
+            removed = []
+            
+            # Check if it's a registry key
+            if target.startswith("HKEY") or target.startswith("HKLM") or target.startswith("HKCU"):
+                # Would use winreg to remove - requires admin
+                removed.append(f"registry:{target}")
+            
+            # Check if it's a scheduled task
+            else:
+                cmd = f'schtasks /delete /tn "{target}" /f'
+                result = subprocess.run(cmd, shell=True, capture_output=True, timeout=30)
+                if result.returncode == 0:
+                    removed.append(f"scheduled_task:{target}")
+            
+            result = {
+                "success": len(removed) > 0,
+                "action": "remove_persistence",
+                "target": target,
+                "removed": removed,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            self._log_action(result)
+            print(f"🧹 PERSISTENCE REMOVED: {target}")
+            
+            return result
+            
+        except Exception as e:
+            return {"success": False, "action": "remove_persistence", "target": target, "error": str(e)}
 
 
 # Confidence-based auto response

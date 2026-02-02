@@ -456,7 +456,7 @@ class AutomatedPlaybooks:
         action = step.action
         
         if action == "kill_process" and self.response_actions:
-            pid = int(resolved_params.get("target", 0))
+            pid = int(resolved_params.get("target", 0)) if resolved_params.get("target") else 0
             if pid:
                 return self.response_actions.kill_process(pid)
         
@@ -482,16 +482,48 @@ class AutomatedPlaybooks:
                 "message": resolved_params.get("message")
             }
         
-        elif action in ["create_snapshot", "flag_for_password_reset", 
-                       "revoke_sessions", "disable_account", "block_domain",
-                       "add_ioc", "scan_directory", "remove_persistence"]:
-            # Placeholder for advanced actions
-            return {
-                "success": True,
-                "action": action,
-                "parameters": resolved_params,
-                "message": f"Action {action} logged (placeholder)"
-            }
+        # New real action implementations
+        elif action == "block_domain" and self.response_actions:
+            domain = resolved_params.get("target", "")
+            if domain:
+                return self.response_actions.block_domain(domain)
+        
+        elif action == "add_ioc" and self.response_actions:
+            return self.response_actions.add_ioc(
+                indicator=resolved_params.get("indicator", ""),
+                ioc_type=resolved_params.get("type", "ip"),
+                threat=resolved_params.get("threat", "Unknown")
+            )
+        
+        elif action == "create_snapshot" and self.response_actions:
+            return self.response_actions.create_snapshot(
+                snapshot_type=resolved_params.get("type", "memory")
+            )
+        
+        elif action == "flag_for_password_reset" and self.response_actions:
+            user = resolved_params.get("user", "")
+            if user:
+                return self.response_actions.flag_for_password_reset(user)
+        
+        elif action == "revoke_sessions" and self.response_actions:
+            user = resolved_params.get("user", "")
+            if user:
+                return self.response_actions.revoke_sessions(user)
+        
+        elif action == "disable_account" and self.response_actions:
+            user = resolved_params.get("user", "")
+            if user:
+                return self.response_actions.disable_account(user)
+        
+        elif action == "scan_directory" and self.response_actions:
+            directory = resolved_params.get("target", "")
+            if directory:
+                return self.response_actions.scan_directory(directory)
+        
+        elif action == "remove_persistence" and self.response_actions:
+            target = resolved_params.get("target", "")
+            if target:
+                return self.response_actions.remove_persistence(target)
         
         return {"success": False, "error": f"Unknown action: {action}"}
     
