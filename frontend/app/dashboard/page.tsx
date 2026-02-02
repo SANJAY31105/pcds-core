@@ -16,6 +16,7 @@ export default function DashboardPage() {
     const [soarData, setSoarData] = useState<any>(null);
     const [mitreData, setMitreData] = useState<any>(null);
     const [predictionData, setPredictionData] = useState<any>(null);
+    const [agentHealth, setAgentHealth] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,12 +29,14 @@ export default function DashboardPage() {
         try {
             // Get customer ID from logic or demo
             const customerId = 'demo';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-            const [dashboard, mitre, soar, prediction]: any[] = await Promise.all([
+            const [dashboard, mitre, soar, prediction, agents]: any[] = await Promise.all([
                 apiClient.getDashboardOverview(24).catch(() => null),
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/mitre/stats/coverage`).then(r => r.json()).catch(() => null),
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/soar/incidents`).then(r => r.json()).catch(() => null),
-                apiClient.getPrediction(customerId).catch(() => null)
+                fetch(`${API_URL}/api/v2/mitre/stats/coverage`).then(r => r.json()).catch(() => null),
+                fetch(`${API_URL}/api/v2/soar/incidents`).then(r => r.json()).catch(() => null),
+                apiClient.getPrediction(customerId).catch(() => null),
+                fetch(`${API_URL}/api/v2/agents/health`).then(r => r.json()).catch(() => null)
             ]);
 
             setData(dashboard || {
@@ -45,6 +48,7 @@ export default function DashboardPage() {
             setMitreData(mitre);
             setSoarData(soar);
             setPredictionData(prediction?.prediction || null);
+            setAgentHealth(agents);
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
@@ -84,6 +88,19 @@ export default function DashboardPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* Agent Status Badge */}
+                    {agentHealth && (
+                        <span className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${agentHealth.online > 0
+                                ? 'bg-[#10a37f]/10 text-[#10a37f]'
+                                : 'bg-[#666]/10 text-[#666]'
+                            }`}>
+                            <span className={`w-2 h-2 rounded-full ${agentHealth.online > 0 ? 'bg-[#10a37f] animate-pulse' : 'bg-[#666]'
+                                }`}></span>
+                            {agentHealth.online > 0
+                                ? `${agentHealth.online} Agent${agentHealth.online > 1 ? 's' : ''} Online`
+                                : 'No Agents'}
+                        </span>
+                    )}
                     <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10a37f]/10 text-[#10a37f] text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-[#10a37f] animate-pulse"></span>
                         ML Pipeline Active

@@ -272,6 +272,14 @@ api_keys_table = sqlalchemy.Table(
 in_memory_events = deque(maxlen=500)  # Last 500 events
 in_memory_connections = deque(maxlen=100)  # Last 100 active connections
 
+# ============= AGENT HEALTH TRACKING =============
+# Tracks agent last seen time: {api_key: {hostname, last_seen, event_count}}
+agent_health = {}
+
+# ============= EMAIL RATE LIMITING =============
+# Tracks last alert time per hostname to prevent spam
+email_rate_limiter = {}  # {hostname: last_alert_datetime}
+
 # ============= Agent Data Ingestion System =============
 # In-memory cache for API keys (loaded from DB on startup)
 customer_api_keys = {
@@ -602,6 +610,14 @@ async def ingest_agent_data(payload: AgentPayload):
     
     customer_id = customer_api_keys[payload.api_key]["customer_id"]
     
+    # Update agent health tracking
+    agent_health[payload.api_key] = {
+        "hostname": payload.hostname,
+        "last_seen": datetime.utcnow().isoformat(),
+        "customer_id": customer_id,
+        "event_count": agent_health.get(payload.api_key, {}).get("event_count", 0) + len(payload.events)
+    }
+    
     anomalies_detected = 0
     timestamp = str(datetime.now())
     
@@ -621,30 +637,41 @@ async def ingest_agent_data(payload: AgentPayload):
         if ml_result["is_anomaly"]:
             anomalies_detected += 1
             
-        # ===== EMAIL ALERTING =====
+        # ===== EMAIL ALERTING WITH RATE LIMITING =====
         if event_dict["risk_score"] > 80:
-            try:
-                # In production, get email from DB user settings
-                # For demo, default to hardcoded admin
-                alert_email = "sanjay31105@gmail.com" 
-                
-                resend.Emails.send({
-                    "from": "PCDS Alert <security@pcdsai.app>", 
-                    "to": alert_email,
-                    "subject": f"🚨 CRITICAL ALERT: {event_dict['risk_score']} Risk on {payload.hostname}",
-                    "html": f"""
-                        <h1>Critical Threat Detected</h1>
-                        <p><b>Host:</b> {payload.hostname}</p>
-                        <p><b>Risk Score:</b> {event_dict['risk_score']}</p>
-                        <p><b>Reason:</b> {ml_result['reason']}</p>
-                        <p><b>Source IP:</b> {event.source_ip}</p>
-                        <br/>
-                        <a href="https://pcdsai.app/dashboard">View in Dashboard</a>
-                    """
-                })
-                print(f"📧 Alert sent to {alert_email}")
-            except Exception as e:
-                print(f"Email Alert Error: {e}")
+            now = datetime.utcnow()
+            last_alert = email_rate_limiter.get(payload.hostname)
+            
+            # Only send if no alert in last 5 minutes for this host
+            if not last_alert or (now - last_alert).total_seconds() > 300:
+                try:
+                    # In production, get email from DB user settings
+                    # For demo, default to hardcoded admin
+                    alert_email = "sanjay31105@gmail.com" 
+                    
+                    resend.Emails.send({
+                        "from": "PCDS Alert <security@pcdsai.app>", 
+                        "to": alert_email,
+                        "subject": f"🚨 CRITICAL ALERT: {event_dict['risk_score']} Risk on {payload.hostname}",
+                        "html": f"""
+                            <h1 style="color: #ef4444;">Critical Threat Detected</h1>
+                            <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; color: #fff;">
+                                <p><b>Host:</b> {payload.hostname}</p>
+                                <p><b>Risk Score:</b> <span style="color: #ef4444; font-size: 24px;">{event_dict['risk_score']}</span></p>
+                                <p><b>Reason:</b> {ml_result['reason']}</p>
+                                <p><b>Process:</b> {event.process_name or 'Unknown'}</p>
+                                <p><b>Source IP:</b> {event.source_ip}</p>
+                                <p><b>Destination:</b> {event.dest_ip}:{event.dest_port}</p>
+                                <p><b>Time:</b> {now.isoformat()}</p>
+                            </div>
+                            <br/>
+                            <a href="https://pcdsai.app/dashboard" style="background: #10a37f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View in Dashboard</a>
+                        """
+                    })
+                    email_rate_limiter[payload.hostname] = now
+                    print(f"📧 Alert sent to {alert_email}")
+                except Exception as e:
+                    print(f"Email Alert Error: {e}")
             
         # Save to database if available
         if database:
@@ -697,6 +724,38 @@ async def ingest_agent_data(payload: AgentPayload):
         "ml_status": "trained" if anomaly_detector.is_trained else "learning",
         "customer_id": customer_id,
         "mode": "persistent" if database else "ephemeral"
+    }
+
+@app.get("/api/v2/agents/health")
+async def get_agents_health():
+    """Get health status of all connected agents"""
+    agents = []
+    now = datetime.utcnow()
+    
+    for api_key, info in agent_health.items():
+        try:
+            last_seen = datetime.fromisoformat(info["last_seen"])
+            seconds_ago = (now - last_seen).total_seconds()
+            
+            # Agent is online if seen in last 2 minutes
+            status = "online" if seconds_ago < 120 else "offline"
+            
+            agents.append({
+                "hostname": info["hostname"],
+                "customer_id": info["customer_id"],
+                "status": status,
+                "last_seen": info["last_seen"],
+                "seconds_ago": int(seconds_ago),
+                "event_count": info["event_count"]
+            })
+        except Exception:
+            pass
+    
+    return {
+        "total_agents": len(agents),
+        "online": sum(1 for a in agents if a["status"] == "online"),
+        "offline": sum(1 for a in agents if a["status"] == "offline"),
+        "agents": agents
     }
 
 @app.get("/api/v2/customers/{customer_id}/events")
