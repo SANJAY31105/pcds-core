@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import NetworkBackground from '@/components/NetworkBackground'
 
 export default function LandingPage() {
     const [email, setEmail] = useState('')
@@ -17,7 +18,6 @@ export default function LandingPage() {
                 body: JSON.stringify({ email })
             });
         } catch (err) {
-            // Ignore errors for demo, still show success to user
             console.error(err);
         }
 
@@ -25,7 +25,10 @@ export default function LandingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#020617] text-[#fafafa]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div className="min-h-screen text-[#fafafa]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+            {/* Lively Network Background */}
+            <NetworkBackground />
 
             {/* Navigation */}
             <nav className="sticky top-0 backdrop-blur-md border-b border-white/5 z-50">
@@ -52,12 +55,12 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero Section */}
-            <section className="max-w-[1200px] mx-auto px-6 py-24 text-center">
+            <section className="max-w-[1200px] mx-auto px-6 py-24 text-center relative z-10">
 
                 {/* Headline */}
                 <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
                     Stop chasing alerts.<br />
-                    <span className="text-gray-400">Start stopping attacks.</span>
+                    <span className="text-emerald-400">Start stopping attacks.</span>
                 </h1>
 
                 {/* Subheadline */}
@@ -67,10 +70,10 @@ export default function LandingPage() {
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col md:flex-row gap-4 justify-center mb-20">
+                <div className="flex flex-col md:flex-row gap-4 justify-center mb-16">
                     <Link
                         href="/get-started"
-                        className="px-6 py-3 md:px-8 md:py-4 rounded-xl font-semibold text-[#020617] text-lg"
+                        className="px-6 py-3 md:px-8 md:py-4 rounded-xl font-semibold text-[#020617] text-lg hover:scale-105 transition-transform duration-200"
                         style={{
                             background: 'linear-gradient(180deg, #fde68a, #f5c16c)',
                             boxShadow: '0 14px 40px rgba(245, 193, 108, 0.35)'
@@ -78,29 +81,47 @@ export default function LandingPage() {
                     >
                         Try it free for 14 days →
                     </Link>
-                    <Link href="/live" className="px-6 py-3 md:px-8 md:py-4 rounded-xl border border-white/15 font-semibold text-lg hover:bg-white/5 transition-colors flex items-center justify-center">
-                        See it in action
+                    <Link href="/live" className="px-6 py-3 md:px-8 md:py-4 rounded-xl border border-white/15 bg-white/5 font-semibold text-lg hover:bg-white/10 transition-all flex items-center justify-center backdrop-blur-sm">
+                        See live demo
                     </Link>
+                </div>
+
+                {/* 3D Dashboard Preview (Slight Tilt) */}
+                <div className="relative mx-auto max-w-5xl rounded-xl border border-white/10 shadow-2xl overflow-hidden mb-20 transform rotate-x-6 hover:rotate-0 transition-transform duration-700 perspective-1000 group">
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent z-10 pointer-events-none"></div>
+                    <img
+                        src="/dashboard-preview.png"
+                        alt="PCDS Dashboard Interface"
+                        className="w-full h-auto rounded-xl opacity-90 group-hover:opacity-100 transition-opacity"
+                        onError={(e) => {
+                            e.currentTarget.src = 'https://placehold.co/1200x800/111827/FFF?text=Dashboard+UI+Preview';
+                        }}
+                    />
+                    {/* Floating Badge */}
+                    <div className="absolute top-10 right-10 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg px-4 py-2 flex items-center gap-3 z-20 animate-bounce-slow">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="text-sm font-medium">Threat Detected: Ransomware.exe</span>
+                    </div>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
                         { value: '88.3%', label: 'catch rate', sublabel: 'on real attacks' },
-                        { value: '<2ms', label: 'to detect', sublabel: 'not seconds — milliseconds' },
+                        { value: '<2ms', label: 'to detect', sublabel: 'real-time AI scoring' },
                         { value: '₹8K', label: 'per month', sublabel: 'vs ₹4L for competitors' },
-                        { value: '10 min', label: 'to deploy', sublabel: 'seriously, that\'s it' },
+                        { value: '5MB', label: 'agent size', sublabel: 'install & forget' },
                     ].map((stat, i) => (
                         <div
                             key={i}
-                            className="p-6 rounded-2xl text-center"
+                            className="p-6 rounded-2xl text-center group hover:bg-white/5 transition-colors"
                             style={{
                                 background: 'rgba(17, 24, 39, 0.65)',
                                 backdropFilter: 'blur(16px)',
                                 border: '1px solid rgba(255, 255, 255, 0.06)'
                             }}
                         >
-                            <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                            <div className="text-3xl font-bold mb-1 group-hover:text-emerald-400 transition-colors">{stat.value}</div>
                             <div className="text-white text-sm font-medium">{stat.label}</div>
                             <div className="text-gray-500 text-xs mt-1">{stat.sublabel}</div>
                         </div>
@@ -109,7 +130,7 @@ export default function LandingPage() {
             </section>
 
             {/* Problem Statement */}
-            <section className="max-w-[1200px] mx-auto px-6 py-16">
+            <section className="max-w-[1200px] mx-auto px-6 py-16 relative z-10">
                 <div
                     className="p-10 rounded-2xl"
                     style={{
@@ -124,13 +145,13 @@ export default function LandingPage() {
                         and 60% of those close within 6 months of a breach.
                     </p>
                     <p className="text-lg text-gray-300 mt-4">
-                        We built PCDS because we believe every business deserves Fortune 500-level security. Not just the Fortune 500.
+                        We built PCDS because every business deserves Fortune 500-level security. Not just the Fortune 500.
                     </p>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section id="features" className="max-w-[1200px] mx-auto px-6 py-24">
+            <section id="features" className="max-w-[1200px] mx-auto px-6 py-24 relative z-10">
                 <div className="text-center mb-16">
                     <span className="text-[#f5c16c] text-sm font-semibold tracking-widest uppercase">How it works</span>
                     <h2 className="text-4xl font-bold mt-4 mb-4">We do the hard parts. You sleep better.</h2>
@@ -144,9 +165,9 @@ export default function LandingPage() {
                             desc: 'Our 5-model ML ensemble was trained on 5.3M real attack samples. Not synthetic data — actual malware, actual breaches, actual techniques.'
                         },
                         {
-                            icon: '💬',
-                            title: 'AI that explains, not just alerts',
-                            desc: '"What is this attack?" "Should I be worried?" Just ask. Our Copilot explains threats in plain English — no security degree required.'
+                            icon: '👾',
+                            title: 'Lightweight Agent',
+                            desc: 'Forget bloatware. Our 5MB agent installs in seconds, runs quietly in the background, and has zero impact on system performance.'
                         },
                         {
                             icon: '⚡',
@@ -165,20 +186,20 @@ export default function LandingPage() {
                         },
                         {
                             icon: '🔌',
-                            title: 'Setup in 10 minutes',
-                            desc: 'Connect via SPAN port mirroring. No agents to install on endpoints. No complex configurations. Just plug and protect.'
+                            title: 'Deploy in 10 minutes',
+                            desc: 'Download the installer, run on your endpoints, and see data instantly. No complex server setup required. It just works.'
                         },
                     ].map((feature, i) => (
                         <div
                             key={i}
-                            className="p-8 rounded-2xl hover:scale-[1.02] transition-transform"
+                            className="p-8 rounded-2xl hover:scale-[1.02] transition-transform group"
                             style={{
                                 background: 'rgba(17, 24, 39, 0.65)',
                                 backdropFilter: 'blur(16px)',
                                 border: '1px solid rgba(255, 255, 255, 0.06)'
                             }}
                         >
-                            <div className="text-3xl mb-4">{feature.icon}</div>
+                            <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
                             <div className="text-lg font-semibold mb-2">{feature.title}</div>
                             <div className="text-gray-400 text-sm leading-relaxed">{feature.desc}</div>
                         </div>
@@ -186,8 +207,8 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Pricing Section */}
-            <section id="pricing" className="max-w-[1200px] mx-auto px-6 py-24">
+            {/* Pricing Section - Updated */}
+            <section id="pricing" className="max-w-[1200px] mx-auto px-6 py-24 relative z-10">
                 <div className="text-center mb-16">
                     <span className="text-[#f5c16c] text-sm font-semibold tracking-widest uppercase">Pricing</span>
                     <h2 className="text-4xl font-bold mt-4 mb-4">No surprises. No "call sales for pricing."</h2>
@@ -223,7 +244,7 @@ export default function LandingPage() {
                     ].map((plan, i) => (
                         <div
                             key={i}
-                            className="p-8 rounded-2xl"
+                            className="p-8 rounded-2xl hover:bg-white/5 transition-colors"
                             style={{
                                 background: 'rgba(17, 24, 39, 0.65)',
                                 backdropFilter: 'blur(16px)',

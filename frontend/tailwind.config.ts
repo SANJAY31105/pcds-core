@@ -29,12 +29,7 @@ const config: Config = {
                 'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
                 'cyber-grid': "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M0 0h60v60H0z\" fill=\"none\"/%3E%3Cpath d=\"M0 0h60v60H0z\" fill=\"%23050508\"/%3E%3Cpath d=\"M30 0v60M0 30h60\" stroke=\"%231a1a2e\" stroke-width=\"0.5\"/%3E%3C/svg%3E')",
             },
-            animation: {
-                'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'glow': 'glow 2s ease-in-out infinite alternate',
-                'slide-up': 'slideUp 0.5s ease-out',
-                'fade-in': 'fadeIn 0.3s ease-in',
-            },
+
             keyframes: {
                 glow: {
                     'from': { boxShadow: '0 0 5px #00f0ff, 0 0 10px #00f0ff, 0 0 15px #00f0ff' },
@@ -52,8 +47,29 @@ const config: Config = {
             backdropBlur: {
                 xs: '2px',
             },
+            animation: {
+                'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'bounce-slow': 'bounce 3s infinite',
+                'glow': 'glow 2s ease-in-out infinite alternate',
+                'slide-up': 'slideUp 0.5s ease-out',
+                'fade-in': 'fadeIn 0.3s ease-in',
+            },
         },
     },
-    plugins: [],
+    plugins: [
+        function ({ addUtilities }: { addUtilities: any }) {
+            addUtilities({
+                '.perspective-1000': {
+                    'perspective': '1000px',
+                },
+                '.rotate-x-6': {
+                    'transform': 'rotateX(6deg)',
+                },
+                '.preserve-3d': {
+                    'transform-style': 'preserve-3d',
+                },
+            })
+        },
+    ],
 }
 export default config
