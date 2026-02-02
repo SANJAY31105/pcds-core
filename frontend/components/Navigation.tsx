@@ -51,27 +51,27 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
 
             <nav className={`
                 fixed left-0 top-0 h-screen bg-[#0f0f0f] transition-all duration-300 ease-out z-50
-                ${collapsed ? 'md:w-[72px]' : 'md:w-60'}
-                w-60
+                ${collapsed ? 'md:w-20' : 'md:w-64'}
+                w-64
                 ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                {/* Logo */}
-                <div className="h-14 flex items-center px-4">
-                    <div className={`flex items-center ${collapsed ? 'md:justify-center' : 'gap-3'}`}>
-                        <div className="w-8 h-8 bg-[#10a37f] rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Shield className="w-4 h-4 text-white" />
+                {/* Logo - More spacious */}
+                <div className="h-16 flex items-center px-5">
+                    <div className={`flex items-center ${collapsed ? 'md:justify-center' : 'gap-4'}`}>
+                        <div className="w-10 h-10 bg-[#10a37f] rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Shield className="w-5 h-5 text-white" />
                         </div>
                         {(!collapsed || mobileOpen) && (
                             <div className={`${collapsed ? 'md:hidden' : 'block'}`}>
-                                <h1 className="text-base font-semibold text-white tracking-tight">PCDS</h1>
-                                <p className="text-[10px] text-[#717171] -mt-0.5">Enterprise NDR</p>
+                                <h1 className="text-lg font-semibold text-white tracking-tight">PCDS</h1>
+                                <p className="text-xs text-[#717171]">Enterprise NDR</p>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Navigation Links */}
-                <div className={`px-3 py-2 overflow-y-auto max-h-[calc(100vh-120px)] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent`}>
+                {/* Navigation Links - MORE BREATHING ROOM */}
+                <div className={`px-3 py-4 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin scrollbar-thumb-[#333] scrollbar-track-transparent`}>
                     {navigation.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -83,18 +83,18 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
                                 onClick={() => setMobileOpen?.(false)}
                                 title={collapsed ? item.name : undefined}
                                 className={`
-                                    flex items-center gap-3 rounded-lg transition-all duration-200 ease-out
-                                    ${collapsed ? 'md:justify-center md:px-0 md:py-2 px-3 py-2' : 'px-3 py-2'}
+                                    flex items-center gap-4 rounded-xl transition-all duration-200 ease-out
+                                    ${collapsed ? 'md:justify-center md:px-0 md:py-3 px-4 py-3' : 'px-4 py-3'}
                                     ${isActive
                                         ? 'bg-[#272727] text-white'
                                         : 'text-[#aaa] hover:bg-[#1a1a1a] hover:text-white'
                                     }
-                                    mb-0.5
+                                    mb-1
                                 `}
                             >
                                 <Icon className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${isActive ? 'text-[#10a37f]' : ''}`} />
                                 {(!collapsed || mobileOpen) && (
-                                    <span className={`text-sm font-normal ${collapsed ? 'md:hidden' : 'block'}`}>{item.name}</span>
+                                    <span className={`text-sm ${collapsed ? 'md:hidden' : 'block'}`}>{item.name}</span>
                                 )}
                             </Link>
                         );
@@ -102,11 +102,11 @@ export default function Navigation({ collapsed = false, mobileOpen = false, setM
                 </div>
 
                 {/* Status Indicator */}
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-[#0f0f0f]">
-                    <div className={`flex items-center gap-2 ${collapsed ? 'md:justify-center' : ''}`}>
-                        <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#0f0f0f]">
+                    <div className={`flex items-center gap-3 ${collapsed ? 'md:justify-center' : ''}`}>
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-pulse"></div>
                         {(!collapsed || mobileOpen) && (
-                            <span className={`text-xs text-[#717171] ${collapsed ? 'md:hidden' : 'block'}`}>Online</span>
+                            <span className={`text-sm text-[#717171] ${collapsed ? 'md:hidden' : 'block'}`}>Online</span>
                         )}
                     </div>
                 </div>
