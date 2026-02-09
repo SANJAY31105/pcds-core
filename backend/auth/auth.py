@@ -95,6 +95,19 @@ class UserStore:
         self._email_index[analyst.email] = analyst.user_id
         
         print(f"👤 Default users created: admin@pcds.local, analyst@pcds.local")
+        
+        # Create YC demo user (for investor/demo access)
+        yc_demo = User(
+            user_id=str(uuid.uuid4()),
+            email="admin@pcds.com",
+            name="YC Demo Admin",
+            role=UserRole.ADMIN,
+            password_hash=self._hash_password("admin123"),
+            created_at=datetime.utcnow().isoformat()
+        )
+        self._users[yc_demo.user_id] = yc_demo
+        self._email_index[yc_demo.email] = yc_demo.user_id
+        print(f"🎯 YC Demo user created: admin@pcds.com")
     
     def _hash_password(self, password: str) -> str:
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
